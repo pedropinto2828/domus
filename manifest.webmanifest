@@ -1,0 +1,11 @@
+{
+  "name": "DOMUS+ Casa Inteligente",
+  "short_name": "DOMUS+",
+  "description": "Controlo da casa inteligente DOMUS+ com ESP32, gestão térmica sazonal e Vista 3D.",
+  "lang": "pt-PT",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f3f6fa",
+  "theme_color": "#10233f",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

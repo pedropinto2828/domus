@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#10233f">
+    <meta property="og:title" content="DOMUS+ — Casa Inteligente">
+    <meta property="og:description" content="Casa inteligente com ESP32, gestão térmica sazonal, simulador e Vista 3D. PAP de Pedro Pinto.">
+    <meta property="og:type" content="website">
+    <meta name="description" content="DOMUS+ — casa inteligente com ESP32: controlo, gestão térmica sazonal, simulador e Vista 3D. PAP de Pedro Pinto, Profitecla 2026/2027.">
+    <title>DOMUS+ | Casa Inteligente</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="interativo.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="dashboard visible" id="dashboard">
+        <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+            <a class="sidebar-brand" href="#home" data-page-link="home" aria-label="DOMUS+, início">
+                <span class="sidebar-brand-mark" aria-hidden="true">D+</span>
+                <span><strong>DOMUS<span>+</span></strong><small>CASA INTELIGENTE</small></span>
+            </a>
+            <p class="sidebar-label">MENU PRINCIPAL</p>
+            <nav class="portal-nav" aria-label="Páginas da aplicação">
+                <button class="nav-item active" data-page="home" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Início</span></button>
+                <button class="nav-item" data-page="plant" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg><span>Planta da Casa</span></button>
+                <button class="nav-item" data-page="live3d" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4m-9 4v10"/></svg><span>Vista 3D ao Vivo</span></button>
+                <button class="nav-item" data-page="equipment" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4m0 16h16M8 16l3-4 3 2 4-6"/></svg><span>Equipamentos</span></button>
+                <button class="nav-item" data-page="automations" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M4.2 7.2l2.1 2.1m11.4 5.4 2.1 2.1M3 12h3m12 0h3M4.2 16.8l2.1-2.1m11.4-5.4 2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg><span>Automatizações</span></button>
+                <button class="nav-item" data-page="schedules" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horários</span></button>
+                <button class="nav-item" data-page="statistics" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span>Estatísticas</span></button>
+                <button class="nav-item" data-page="alerts" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Alertas</span><span class="nav-count" id="sidebarAlertCount" hidden>0</span></button>
+                <button class="nav-item" data-page="history" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5m4-1v5l3 2"/></svg><span>Histórico</span></button>
+                <button class="nav-item" data-page="diagnostics" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8.3 8 10 4.6-1.7 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Diagnóstico</span></button>
+                <button class="nav-item" id="navSettings" data-page="settings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.9h-3l-.3-1.9a8 8 0 0 1-1.7-1l-1.7.7-1.5-2.6 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.5-2.6 1.7.7a8 8 0 0 1 1.7-1l.3-1.9h3l.3 1.9a8 8 0 0 1 1.7 1l1.7-.7 1.5 2.6-1.4 1.1a7 7 0 0 1 0 2Z"/></svg><span>Definições</span></button>
+                <button class="nav-item" data-page="about" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Sobre o projeto</span></button>
+            </nav>
+            <div class="sidebar-footer"><span class="sidebar-status-dot"></span><span id="sidebarConnectionStatus">Demonstração</span></div>
+        </aside>
+        <button class="nav-backdrop" id="navBackdrop" type="button" aria-label="Fechar menu"></button>
+        <div class="app-workspace">
+        <header class="app-header" id="dashboardTop">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="sidebar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <a class="brand dark-brand" href="#home" data-page-link="home" aria-label="DOMUS+, início">
+                <span class="domus-name">DOMUS+</span>
+                <span class="domus-subtitle">CASA INTELIGENTE</span>
+            </a>
+            <div class="header-actions">
+                <button class="command-trigger" id="openCommandPalette" type="button" aria-label="Pesquisa rápida (Ctrl+K)" aria-haspopup="dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                    <span>Procurar ou executar…</span><kbd>Ctrl K</kbd>
+                </button>
+                <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Mudar para tema escuro" aria-pressed="false">
+                    <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
+                    <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                </button>
+                <div class="connection-pill demo" aria-label="Estado: demonstração">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M5 9.5a11 11 0 0 1 14 0M8 12.5a6.5 6.5 0 0 1 8 0M11 15.5a2 2 0 0 1 2 0"></path>
+                        <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                    <span id="connectionStatus">Demonstração</span>
+                </div>
+                <button class="icon-button notification-button" id="openNotifications" type="button" aria-label="Abrir alertas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path>
+                    </svg>
+                    <span class="notification-count" id="notificationCount" hidden>0</span>
+                </button>
+                <button class="icon-button" id="openSettings" type="button" aria-label="Abrir definições">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.9h-3l-.3-1.9a8 8 0 0 1-1.7-1l-1.7.7-1.5-2.6 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.5-2.6 1.7.7a8 8 0 0 1 1.7-1l.3-1.9h3l.3 1.9a8 8 0 0 1 1.7 1l1.7-.7 1.5 2.6-1.4 1.1a7 7 0 0 1 0 2Z" transform="translate(-1 -1)"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-view active" id="homePage" data-page-view="home" aria-hidden="false">
+        <section class="home-hero" aria-labelledby="dashboardHouseName">
+            <div class="hero-main">
+                <p class="eyebrow hero-greeting" id="heroGreeting">BEM-VINDO</p>
+                <h1 id="dashboardHouseName">A minha casa</h1>
+                <p class="hero-decision" id="heroDecision">A preparar o estado da casa…</p>
+                <span class="connection-detail" id="dashboardConnectionDetail">A aguardar ligação</span>
+                <div class="hero-actions">
+                    <button class="hero-button primary" type="button" data-go-page="live3d" data-scroll-to="simulatorSection">Abrir simulador</button>
+                    <button class="hero-button" id="refreshState" type="button">Atualizar estado</button>
+                    <button class="hero-button" id="stopMovements" type="button">Parar movimentos</button>
+                </div>
+            </div>
+            <div class="hero-climate" aria-label="Clima da casa">
+                <div class="hero-temps">
+                    <div><span class="hero-temp-label">Interior</span><strong class="hero-temp" id="heroTempIn">--</strong></div>
+                    <div><span class="hero-temp-label">Exterior</span><strong class="hero-temp outside" id="heroTempOut">--</strong></div>
+                </div>
+                <div class="comfort-meter" aria-label="Temperatura interior face à temperatura-alvo">
+                    <div class="comfort-track"><span class="comfort-target" id="comfortTarget"></span><span class="comfort-marker" id="comfortMarker"></span></div>
+                    <div class="comfort-scale"><span>15 °C</span><span id="comfortLabel">alvo --</span><span>35 °C</span></div>
+                </div>
+                <p class="hero-season" id="heroSeason">Estação: --</p>
+            </div>
+        </section>
+
+        <section class="home-summary" aria-label="Estado da casa">
+            <article class="summary-card connection-summary-card" data-go-page="settings" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 9.5a11 11 0 0 1 14 0M8 12.5a6.5 6.5 0 0 1 8 0M11 15.5a2 2 0 0 1 2 0"></path><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"></circle></svg>
+                <strong id="homeConnectionSummary">Demonstração</strong>
+                <span class="summary-label">Ligação à ESP32</span>
+                <span class="summary-detail" id="homeConnectionDetail">Sem comandos reais</span>
+            </article>
+            <article class="summary-card" data-go-page="statistics" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"></path><path d="M12 11v6"></path></svg>
+                <strong><span id="homeTemperature">--</span> °C</strong>
+                <span class="summary-label">Temperatura interior</span>
+                <span class="summary-detail" id="homeHumidity">Humidade: --%</span>
+            </article>
+            <article class="summary-card" data-go-page="statistics" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20V4m0 16h16M8 16l3-4 3 2 4-6"></path></svg>
+                <strong id="luminosityStatus">--</strong>
+                <span class="summary-label">Luminosidade</span>
+                <span class="summary-detail">BH1750, em lux</span>
+            </article>
+            <article class="summary-card" data-go-page="live3d" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 5 13h5l-1 8 10-11h-5l1-7Z"></path></svg>
+                <strong id="rainStatus">--</strong>
+                <span class="summary-label">Chuva</span>
+            </article>
+            <article class="summary-card" data-go-page="equipment" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1"></rect><path d="M12 3v18M4 12h16"></path></svg>
+                <strong id="windowsSummary">--</strong>
+                <span class="summary-label">Janela e estore</span>
+            </article>
+            <article class="summary-card" data-go-page="equipment" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 18h6M10 22h4M8 14a6 6 0 1 1 8 0c-.8.6-1 1.2-1 2h-6c0-.8-.2-1.4-1-2Z"></path></svg>
+                <strong id="lightsSummary">--</strong>
+                <span class="summary-label">Iluminação</span>
+            </article>
+            <article class="summary-card" data-go-page="equipment" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v18M8 7c0-2 2-4 4-4s4 2 4 4-2 4-4 4-4 2-4 4 2 4 4 4 4-2 4-4"></path></svg>
+                <strong id="fanSummary">--</strong>
+                <span class="summary-label">Ventilação</span>
+            </article>
+            <article class="summary-card" data-go-page="equipment" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z"></path></svg>
+                <strong id="faucetSummary">--</strong>
+                <span class="summary-label">Torneira</span>
+                <span class="summary-detail" id="faucetTimer">Tempo restante: --</span>
+            </article>
+            <article class="summary-card" data-go-page="diagnostics" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5.6 5.6l2.8 2.8m7.2 7.2 2.8 2.8m0-12.8-2.8 2.8m-7.2 7.2-2.8 2.8"></path><circle cx="12" cy="12" r="4"></circle></svg>
+                <strong id="motionSummary">--</strong>
+                <span class="summary-label">Movimento</span>
+            </article>
+        </section>
+        <p class="summary-disclaimer" id="summaryDisclaimer">Modo de demonstração — leituras ilustrativas.</p>
+
+        <section class="quick-modes section-block" aria-labelledby="quickModesTitle">
+            <div class="section-heading">
+                <div><p class="eyebrow">MODOS DE FUNCIONAMENTO</p><h2 id="quickModesTitle">Modos da casa</h2></div>
+            </div>
+            <div class="mode-buttons">
+                <button class="mode-button active" data-mode="auto" type="button" aria-pressed="true"><strong>Automático</strong><span>Executar regras</span></button>
+                <button class="mode-button" data-mode="eco" type="button" aria-pressed="false"><strong>Modo ECO</strong><span>Reduzir consumo</span></button>
+                <button class="mode-button" data-mode="night" type="button" aria-pressed="false"><strong>Modo Noite</strong><span>Rotina noturna</span></button>
+                <button class="mode-button" data-mode="away" type="button" aria-pressed="false"><strong>Modo Ausente</strong><span>Casa vazia</span></button>
+            </div>
+            <p class="season-status" id="seasonStatus">Gestão térmica: Verão · temperatura-alvo 25 °C</p>
+            <div class="mode-preview-panel">
+                <div><strong id="modePreviewTitle">Pré-visualização: Automático</strong><p id="modePreviewActions">Consulta as ações que serão executadas antes de aplicar o modo.</p></div>
+                <button class="save-settings" id="applySelectedMode" type="button">Aplicar modo selecionado</button>
+            </div>
+        </section>
+        <div class="home-overview-grid">
+            <section class="home-overview-card" aria-labelledby="upcomingTitle">
+                <div class="home-overview-heading"><div><p class="eyebrow">AGENDA</p><h2 id="upcomingTitle">Próximos horários</h2></div><button class="text-button" type="button" data-go-page="schedules">Ver todos</button></div>
+                <ul class="home-preview-list" id="homeUpcomingSchedules"></ul>
+            </section>
+            <section class="home-overview-card" aria-labelledby="recentAlertsTitle">
+                <div class="home-overview-heading"><div><p class="eyebrow">A ACOMPANHAR</p><h2 id="recentAlertsTitle">Alertas recentes</h2></div><button class="text-button" type="button" data-go-page="alerts">Ver todos</button></div>
+                <ul class="home-preview-list" id="homeRecentAlerts"></ul>
+            </section>
+        </div>
+        </div>
+
+        <div class="page-view" id="plantPage" data-page-view="plant" aria-hidden="true">
+        <section class="section-block" id="floorPlanSection">
+            <div class="section-heading">
+                <div><p class="eyebrow">MAPA INTERATIVO</p><h2>Planta da Casa</h2></div>
+                <span class="section-note" id="floorPlanConnection">A aguardar estado</span>
+            </div>
+            <p class="section-description">Seleciona uma divisão para ver os equipamentos associados. Os estados são os recebidos da ESP32 ou estão identificados como demonstração.</p>
+            <div class="floor-plan-grid" role="group" aria-label="Divisões da casa">
+                <button class="floor-room floor-room-living selected" type="button" data-room="living" aria-pressed="true">
+                    <span class="floor-room-name" id="floorRoomLivingName">Sala</span>
+                    <span class="floor-room-devices" id="floorRoomLivingDevices"></span>
+                    <span class="floor-room-symbols" aria-hidden="true">▧　☼　↻</span>
+                </button>
+                <button class="floor-room floor-room-bedroom" type="button" data-room="bedroom" aria-pressed="false">
+                    <span class="floor-room-name">Quartos e casa de banho</span>
+                    <span class="floor-room-devices" id="floorRoomBedroomDevices"></span>
+                    <span class="floor-room-symbols" aria-hidden="true">▧　☼</span>
+                </button>
+                <button class="floor-room floor-room-kitchen" type="button" data-room="kitchen" aria-pressed="false">
+                    <span class="floor-room-name">Cozinha</span>
+                    <span class="floor-room-devices" id="floorRoomKitchenDevices"></span>
+                    <span class="floor-room-symbols" aria-hidden="true">↓</span>
+                </button>
+                <button class="floor-room floor-room-outside" type="button" data-room="outside" aria-pressed="false" aria-label="Selecionar exterior">
+                    <span class="floor-room-name">Exterior</span>
+                    <span class="floor-room-devices" id="floorRoomOutsideDevices"></span>
+                    <span class="floor-room-symbols" aria-hidden="true">☂　◉</span>
+                </button>
+            </div>
+            <div class="floor-room-detail" aria-live="polite">
+                <h3 id="floorSelectedRoom">Sala</h3>
+                <ul class="floor-device-list" id="floorDeviceList"></ul>
+            </div>
+        </section>
+        </div>
+
+        <div class="page-view" id="live3dPage" data-page-view="live3d" aria-hidden="true">
+        <section class="section-block live3d-section">
+            <div class="section-heading">
+                <div><p class="eyebrow">MODELO INTERATIVO</p><h2>Vista 3D ao Vivo</h2></div>
+                <span class="section-note live3d-connection" id="live3dConnection">A aguardar estado</span>
+            </div>
+            <p class="section-description">Seleciona uma divisão ou equipamento para consultar os estados recebidos e os controlos disponíveis. Arrasta para rodar e usa a roda ou os botões para ampliar.</p>
+            <div class="live3d-alert" id="live3dAlert" role="status" hidden></div>
+            <div class="live3d-meta">
+                <span>Última atualização: <strong id="live3dLastUpdate">Ainda sem atualização</strong></span>
+                <span id="live3dDataSource">A aguardar dados</span>
+            </div>
+            <div class="live3d-layout">
+                <div class="live3d-viewport" id="live3dViewport" aria-label="Modelo isométrico interativo da casa">
+                    <div class="live3d-stage" id="live3dStage">
+                        <svg class="live3d-model" viewBox="45 0 730 430" role="group" aria-label="Maquete isométrica interativa da casa">
+                            <defs>
+                                <radialGradient id="live3dLightGlow">
+                                    <stop offset="0" stop-color="#ffd873" stop-opacity=".92"/>
+                                    <stop offset=".48" stop-color="#ffe8a0" stop-opacity=".5"/>
+                                    <stop offset="1" stop-color="#ffe8a0" stop-opacity="0"/>
+                                </radialGradient>
+                                <linearGradient id="live3dFloorGradient" x1="0" y1="0" x2="0.8" y2="1">
+                                    <stop offset="0" stop-color="#f6f0e5"/>
+                                    <stop offset="1" stop-color="#e7ddca"/>
+                                </linearGradient>
+                                <linearGradient id="live3dWallGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#fffdf8"/>
+                                    <stop offset="1" stop-color="#e9e5d9"/>
+                                </linearGradient>
+                                <filter id="live3dShadow" x="-30%" y="-30%" width="160%" height="170%">
+                                    <feGaussianBlur stdDeviation="10"/>
+                                </filter>
+                            </defs>
+                            <g class="live3d-sky" aria-hidden="true">
+                                <g class="live3d-stars"><circle cx="90" cy="40" r="1.6"/><circle cx="160" cy="22" r="1.2"/><circle cx="230" cy="58" r="1.4"/><circle cx="560" cy="30" r="1.3"/><circle cx="640" cy="62" r="1.6"/><circle cx="720" cy="26" r="1.2"/><circle cx="690" cy="96" r="1"/><circle cx="130" cy="96" r="1"/></g>
+                                <g class="live3d-sun" transform="translate(132 62)"><circle r="22"/><path d="M0-34v-8M0 34v8M-34 0h-8M34 0h8M-24-24l-6-6M24 24l6 6M-24 24l-6 6M24-24l6-6"/></g>
+                                <path class="live3d-moon" d="M140 44a22 22 0 1 0 22 30 17 17 0 0 1-22-30Z"/>
+                                <g class="live3d-cloud" transform="translate(600 58)"><path d="M-40 10a16 16 0 0 1 8-30 22 22 0 0 1 40-6 18 18 0 0 1 30 14 14 14 0 0 1 0 28h-70a12 12 0 0 1-8-6Z"/></g>
+                            </g>
+                            <ellipse class="live3d-ground-shadow" cx="414" cy="370" rx="325" ry="54" filter="url(#live3dShadow)"/>
+                            <ellipse class="live3d-plant" cx="88" cy="231" rx="19" ry="8"/>
+                            <ellipse class="live3d-plant" cx="740" cy="211" rx="22" ry="9"/>
+                            <polygon class="live3d-back-wall live3d-back-wall-left" points="104,196 410,78 410,23 104,141"/>
+                            <polygon class="live3d-back-wall live3d-back-wall-right" points="410,78 718,196 718,141 410,23"/>
+                            <polygon class="live3d-floor" points="104,196 410,78 718,196 410,314"/>
+                            <polygon class="live3d-front-wall live3d-front-wall-left" points="104,196 410,314 410,350 104,232"/>
+                            <polygon class="live3d-front-wall live3d-front-wall-right" points="410,314 718,196 718,232 410,350"/>
+                            <path class="live3d-wall-trim" d="M104 196 410 314 718 196"/>
+                            <g class="live3d-room" data-live-room="living" role="button" tabindex="0" aria-label="Selecionar sala e hall">
+                                <polygon class="live3d-room-floor live3d-room-living-floor" points="132,196 300,131 468,195 300,261"/>
+                                <text x="180" y="173">SALA</text>
+                            </g>
+                            <g class="live3d-room" data-live-room="bedroom" role="button" tabindex="0" aria-label="Selecionar quartos e casa de banho">
+                                <polygon class="live3d-room-floor live3d-room-bedroom-floor" points="300,131 394,95 562,159 468,195"/>
+                                <text x="556" y="200">QUARTOS</text>
+                            </g>
+                            <g class="live3d-room" data-live-room="kitchen" role="button" tabindex="0" aria-label="Selecionar cozinha">
+                                <polygon class="live3d-room-floor live3d-room-kitchen-floor" points="300,261 468,195 636,259 468,325"/>
+                                <text x="522" y="318">COZINHA</text>
+                            </g>
+                            <g class="live3d-room" data-live-room="outside" role="button" tabindex="0" aria-label="Selecionar exterior">
+                                <polygon class="live3d-room-floor live3d-room-outside-floor" points="104,196 132,185 300,250 273,261"/>
+                                <text x="188" y="230">TERRAÇO</text>
+                            </g>
+                            <path class="live3d-partition live3d-partition-side" d="M300 131v130l13-5V126ZM468 195v130l13-5V190Z"/>
+                            <path class="live3d-partition live3d-partition-cross" d="M300 131l168 64 12-5-168-64Z"/>
+                            <g class="live3d-furniture" aria-hidden="true">
+                                <path class="live3d-rug" d="m190 204 91-36 96 37-91 37z"/>
+                                <path class="live3d-sofa-side" d="m205 177 54 21v26l-54-21z"/>
+                                <path class="live3d-sofa-front" d="m259 198 61-24v26l-61 24z"/>
+                                <path class="live3d-sofa-top" d="m205 177 61-24 54 21-61 24z"/>
+                                <path class="live3d-sofa-cushion" d="m215 177 20-8 18 7-20 8zm25 10 21-8 18 7-21 8z"/>
+                                <path class="live3d-table-side" d="m268 219 41-16v15l-41 16z"/>
+                                <path class="live3d-table-top" d="m251 212 42-16 17 7-42 16z"/>
+                                <path class="live3d-bed-side" d="m420 140 51 20v17l-51-20z"/>
+                                <path class="live3d-bed-front" d="m471 160 55-22v17l-55 22z"/>
+                                <path class="live3d-bed-top" d="m420 140 55-22 51 20-55 22z"/>
+                                <path class="live3d-pillow" d="m430 138 19-8 15 6-19 8zm25-10 18-7 15 6-18 7z"/>
+                                <path class="live3d-cabinet-side" d="m513 235 49 19v27l-49-19z"/>
+                                <path class="live3d-cabinet-front" d="m562 254 52-21v27l-52 21z"/>
+                                <path class="live3d-counter-top" d="m513 235 52-21 49 19-52 21z"/>
+                                <path class="live3d-counter-detail" d="m545 223 18-7 17 7-18 7z"/>
+                                <path class="live3d-plant-pot" d="m116 220 16 6-4 13-16-6z"/>
+                                <path class="live3d-plant-leaves" d="M120 221c-13-13-3-18 2-8 0-13 9-12 5 0 11-8 15-1 3 6Z"/>
+                            </g>
+                            <g class="live3d-device live3d-window" data-live-item="window1" role="button" tabindex="0" aria-label="Janela, estado desconhecido" transform="translate(116 215) skewY(21)">
+                                <rect class="live3d-window-frame" x="0" y="0" width="66" height="47" rx="4"/>
+                                <rect class="live3d-window-sill" x="-4" y="43" width="74" height="7" rx="2"/>
+                                <polygon class="live3d-window-panel" points="6,6 31,6 31,40 6,40"/>
+                                <polygon class="live3d-window-panel" points="35,6 60,6 60,40 35,40"/>
+                                <path class="live3d-window-crossbar" d="M33 5v36M5 23h57"/>
+                                <text class="live3d-device-label" x="33" y="66">JANELA</text>
+                            </g>
+                            <g class="live3d-device live3d-window" data-live-item="window2" role="button" tabindex="0" aria-label="Estore, estado desconhecido" transform="translate(634 214) skewY(-21)">
+                                <rect class="live3d-window-frame" x="0" y="0" width="65" height="46" rx="4"/>
+                                <rect class="live3d-window-sill" x="-4" y="42" width="73" height="7" rx="2"/>
+                                <polygon class="live3d-window-panel" points="6,6 30,6 30,39 6,39"/>
+                                <polygon class="live3d-window-panel" points="35,6 59,6 59,39 35,39"/>
+                                <path class="live3d-window-crossbar" d="M33 5v36M5 22h58"/>
+                                <g class="live3d-blind-slats"><rect x="4" y="4" width="57" height="36" rx="2"/><path d="M5 10h55M5 16h55M5 22h55M5 28h55M5 34h55"/></g>
+                                <text class="live3d-device-label" x="32" y="65">ESTORE</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light1" role="button" tabindex="0" aria-label="Sala, estado desconhecido" transform="translate(296 160)">
+                                <circle class="live3d-glow" r="75" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-12v13"/>
+                                <path class="live3d-lamp" d="M-13 3a14 14 0 1 1 26 0l-4 5h-18z"/>
+                                <path class="live3d-lamp-base" d="M-8 10h16m-13 4h10"/>
+                                <text class="live3d-device-label" x="0" y="32">L1</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light2" role="button" tabindex="0" aria-label="Cozinha, estado desconhecido" transform="translate(522 228)">
+                                <circle class="live3d-glow" r="55" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-10v11"/>
+                                <path class="live3d-lamp" d="M-11 2a12 12 0 1 1 22 0l-3 5h-16z"/>
+                                <path class="live3d-lamp-base" d="M-7 9h14m-11 4h8"/>
+                                <text class="live3d-device-label" x="0" y="29">L2</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light3" role="button" tabindex="0" aria-label="Quarto 1, estado desconhecido" transform="translate(430 128)">
+                                <circle class="live3d-glow" r="55" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-10v11"/>
+                                <path class="live3d-lamp" d="M-11 2a12 12 0 1 1 22 0l-3 5h-16z"/>
+                                <path class="live3d-lamp-base" d="M-7 9h14m-11 4h8"/>
+                                <text class="live3d-device-label" x="0" y="29">L3</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light4" role="button" tabindex="0" aria-label="Quarto 2, estado desconhecido" transform="translate(500 140)">
+                                <circle class="live3d-glow" r="55" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-10v11"/>
+                                <path class="live3d-lamp" d="M-11 2a12 12 0 1 1 22 0l-3 5h-16z"/>
+                                <path class="live3d-lamp-base" d="M-7 9h14m-11 4h8"/>
+                                <text class="live3d-device-label" x="0" y="29">L4</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light5" role="button" tabindex="0" aria-label="Casa de banho, estado desconhecido" transform="translate(372 120)">
+                                <circle class="live3d-glow" r="55" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-10v11"/>
+                                <path class="live3d-lamp" d="M-11 2a12 12 0 1 1 22 0l-3 5h-16z"/>
+                                <path class="live3d-lamp-base" d="M-7 9h14m-11 4h8"/>
+                                <text class="live3d-device-label" x="0" y="29">L5</text>
+                            </g>
+                            <g class="live3d-device live3d-light" data-live-item="light6" role="button" tabindex="0" aria-label="Hall/Garagem, estado desconhecido" transform="translate(258 212)">
+                                <circle class="live3d-glow" r="55" fill="url(#live3dLightGlow)"/>
+                                <path class="live3d-pendant" d="M0-10v11"/>
+                                <path class="live3d-lamp" d="M-11 2a12 12 0 1 1 22 0l-3 5h-16z"/>
+                                <path class="live3d-lamp-base" d="M-7 9h14m-11 4h8"/>
+                                <text class="live3d-device-label" x="0" y="29">L6</text>
+                            </g>
+                            <g class="live3d-device live3d-fan" data-live-item="fan" role="button" tabindex="0" aria-label="Ventoinha, estado desconhecido" transform="translate(350 226)">
+                                <circle class="live3d-fan-ceiling" r="43"/>
+                                <circle class="live3d-fan-hub" r="8"/>
+                                <g class="live3d-fan-rotor">
+                                    <path d="M0-7c-20-35-7-42 2-40 13 3 8 28 5 40ZM7 0c35-20 42-7 40 2-3 13-28 8-40 5ZM0 7c20 35 7 42-2 40-13-3-8-28-5-40ZM-7 0c-35 20-42 7-40-2 3-13 28-8 40-5Z"/>
+                                </g>
+                                <text class="live3d-device-label" x="0" y="59">VENTOINHA</text>
+                            </g>
+                            <g class="live3d-device live3d-faucet" data-live-item="faucet" role="button" tabindex="0" aria-label="Torneira, estado desconhecido" transform="translate(568 255)">
+                                <path d="M-18 0h36v8h-36zM-11-15h8V0h-8zM-3-15h21v7H-3z"/>
+                                <path class="live3d-faucet-drop" d="M0 13c-5 7-5 10 0 11 5-1 5-4 0-11z"/>
+                                <text class="live3d-device-label" x="0" y="39">TORNEIRA</text>
+                            </g>
+                            <g class="live3d-rain" aria-hidden="true"><path d="M70 10l-7 18"/><path d="M120 -20l-7 18"/><path d="M170 30l-7 18"/><path d="M220 -5l-7 18"/><path d="M270 25l-7 18"/><path d="M320 -25l-7 18"/><path d="M370 15l-7 18"/><path d="M420 -10l-7 18"/><path d="M470 28l-7 18"/><path d="M520 -18l-7 18"/><path d="M570 12l-7 18"/><path d="M620 -8l-7 18"/><path d="M670 22l-7 18"/><path d="M720 -15l-7 18"/><path d="M760 18l-7 18"/><path d="M95 60l-7 18"/><path d="M195 80l-7 18"/><path d="M295 55l-7 18"/><path d="M395 75l-7 18"/><path d="M495 50l-7 18"/><path d="M595 70l-7 18"/><path d="M695 58l-7 18"/></g>
+                            <g class="live3d-temp-tag live3d-temp-in" transform="translate(410 46)" aria-hidden="true"><rect x="-44" y="-17" width="88" height="30" rx="15"/><text id="live3dTempIn" x="0" y="4">-- °C</text></g>
+                            <g class="live3d-temp-tag live3d-temp-out" transform="translate(70 168)" aria-hidden="true"><rect x="-50" y="-17" width="100" height="30" rx="15"/><text id="live3dTempOut" x="0" y="4">Ext. --</text></g>
+                        </svg>
+                    </div>
+                    <div class="live3d-zoom" aria-label="Controlos de ampliação">
+                        <button id="live3dZoomIn" type="button" aria-label="Ampliar">+</button>
+                        <button id="live3dZoomOut" type="button" aria-label="Reduzir">−</button>
+                        <button id="live3dResetView" type="button" aria-label="Repor vista">↺</button>
+                    </div>
+                    <span class="live3d-hint">Arrasta para rodar · roda para zoom</span>
+                </div>
+                <aside class="live3d-panel" aria-live="polite" aria-labelledby="live3dDetailTitle">
+                    <p class="eyebrow">SELEÇÃO</p>
+                    <h3 id="live3dDetailTitle">Sala</h3>
+                    <p class="live3d-item-status" id="live3dItemStatus">À espera de dados</p>
+                    <p class="live3d-command" id="live3dLastCommand">Último comando: nenhum nesta sessão</p>
+                    <div class="live3d-panel-divider"></div>
+                    <h4>Sensores relevantes</h4>
+                    <ul id="live3dSensors" class="live3d-sensors"></ul>
+                    <h4>Equipamentos</h4>
+                    <div id="live3dControls" class="live3d-controls"></div>
+                </aside>
+            </div>
+            <section class="simulator" id="simulatorSection" aria-labelledby="simulatorTitle">
+                <div class="simulator-head">
+                    <div><p class="eyebrow">MODO DEMONSTRAÇÃO</p><h3 id="simulatorTitle">Simulador de ambiente</h3>
+                    <p class="section-description">Muda o tempo e a temperatura e vê a casa decidir sozinha, com as mesmas regras do firmware da ESP32.</p></div>
+                    <span class="simulator-badge" id="simulatorBadge">Ativo</span>
+                </div>
+                <div class="scenario-chips" role="group" aria-label="Cenários prontos">
+                    <button type="button" class="scenario-chip" data-scenario="summerCool">☀️ Tarde quente, fora fresco</button>
+                    <button type="button" class="scenario-chip" data-scenario="summerHot">🔥 Calor lá fora</button>
+                    <button type="button" class="scenario-chip" data-scenario="winterSun">🌤️ Manhã de inverno com sol</button>
+                    <button type="button" class="scenario-chip" data-scenario="winterNight">🌙 Noite de inverno</button>
+                    <button type="button" class="scenario-chip" data-scenario="rain">🌧️ Começou a chover</button>
+                    <button type="button" class="scenario-chip" data-scenario="arrival">🚶 Chegada à noite</button>
+                </div>
+                <div class="simulator-grid">
+                    <div class="simulator-controls">
+                        <label class="sim-range">Temperatura interior <output id="simTempInValue">24 °C</output><input type="range" id="simTempIn" min="10" max="40" step="0.5" value="24"></label>
+                        <label class="sim-range">Temperatura exterior <output id="simTempOutValue">19 °C</output><input type="range" id="simTempOut" min="-5" max="45" step="0.5" value="19"></label>
+                        <label class="sim-range">Luminosidade <output id="simLuxValue">320 lx</output><input type="range" id="simLux" min="0" max="1500" step="10" value="320"></label>
+                        <label class="sim-range">Temperatura-alvo <output id="simTargetValue">25 °C</output><input type="range" id="simTarget" min="15" max="35" step="0.5" value="25"></label>
+                        <div class="sim-switches">
+                            <label class="sim-switch"><input type="checkbox" id="simRain"><span>Chuva</span></label>
+                            <label class="sim-switch"><input type="checkbox" id="simMotion"><span>Movimento</span></label>
+                        </div>
+                        <div class="sim-season" role="radiogroup" aria-label="Estação">
+                            <label><input type="radio" name="simSeason" value="summer" checked><span>Verão</span></label>
+                            <label><input type="radio" name="simSeason" value="winter"><span>Inverno</span></label>
+                            <label><input type="radio" name="simSeason" value="off"><span>Desligada</span></label>
+                        </div>
+                    </div>
+                    <div class="simulator-decision" aria-live="polite">
+                        <h4>O que a casa decidiu — e porquê</h4>
+                        <p class="sim-verdict" id="simVerdict">À espera de dados…</p>
+                        <ul class="sim-reasons" id="simReasons"></ul>
+                        <div class="sim-pause" id="simPause" hidden><span id="simPauseText">Gestão térmica em pausa.</span><button type="button" class="text-button" id="simResume">Retomar agora</button></div>
+                        <h4>Últimas decisões</h4>
+                        <ol class="sim-log" id="simLog"></ol>
+                    </div>
+                </div>
+            </section>
+            <p class="live3d-disclaimer">Em ligação real, a janela e o estore confirmam a posição fechada pelo contacto magnético (reed); a posição aberta é a última ordem enviada. Luzes, ventoinha e torneira mostram a saída comandada pela ESP32, não uma confirmação da carga.</p>
+        </section>
+        </div>
+
+        <div class="page-view" id="statisticsPage" data-page-view="statistics" aria-hidden="true">
+        <section class="section-block" id="statisticsSection">
+            <div class="section-heading">
+                <div><p class="eyebrow">DADOS REGISTADOS</p><h2>Estatísticas</h2></div>
+                <span class="section-note" id="statisticsDataSource">Sem amostras</span>
+            </div>
+            <p class="section-description">Gráficos baseados nos registos de sensores guardados com data e hora. Dados de demonstração são identificados; não são estimados consumos.</p>
+            <div class="statistics-controls">
+                <label>Período
+                    <select id="statisticsPeriod">
+                        <option value="day">Hoje</option>
+                        <option value="week" selected>Últimos 7 dias</option>
+                        <option value="month">Últimos 30 dias</option>
+                    </select>
+                </label>
+                <button class="secondary-button" id="refreshStatistics" type="button">Atualizar dados</button>
+                <button class="secondary-button" id="exportStatistics" type="button">Exportar CSV</button>
+            </div>
+            <div class="statistics-cards">
+                <article class="statistics-card"><span>Ativações de luzes</span><strong id="statLightActivations">--</strong></article>
+                <article class="statistics-card"><span>Funcionamento ventilação</span><strong id="statFanRuntime">--</strong></article>
+                <article class="statistics-card"><span>Fechos automáticos da torneira</span><strong id="statFaucetClosures">--</strong></article>
+                <article class="statistics-card"><span>Horários executados</span><strong id="statScheduleRuns">--</strong></article>
+            </div>
+            <div class="statistics-chart-grid">
+                <section class="statistics-chart" aria-labelledby="temperatureChartTitle">
+                    <h3 id="temperatureChartTitle">Temperatura (°C)</h3>
+                    <svg id="temperatureChart" viewBox="0 0 640 220" role="img" aria-label="Gráfico de temperatura"></svg>
+                </section>
+                <section class="statistics-chart" aria-labelledby="lightChartTitle">
+                    <h3 id="lightChartTitle">Luminosidade (lx)</h3>
+                    <svg id="lightChart" viewBox="0 0 640 220" role="img" aria-label="Gráfico de luminosidade"></svg>
+                </section>
+            </div>
+            <p id="statisticsEmpty" class="statistics-empty" hidden>Ainda não existem registos para este período. Liga à ESP32 ou usa demonstração para começar a guardar amostras.</p>
+        </section>
+        </div>
+
+        <div class="page-view" id="diagnosticsPage" data-page-view="diagnostics" aria-hidden="true">
+        <section class="section-block" id="diagnosticsSection">
+            <div class="section-heading">
+                <div><p class="eyebrow">LIGAÇÃO E SENSORES</p><h2>Diagnóstico do Sistema</h2></div>
+                <span class="section-note" id="diagnosticsConnectionStatus">Demonstração</span>
+            </div>
+            <p class="section-description">Os testes consultam a API e as leituras atuais. Estado desconhecido não significa que o equipamento deixou de responder.</p>
+            <div class="diagnostics-actions">
+                <button class="secondary-button" id="diagnosticsTestConnection" type="button">Testar ligação</button>
+                <button class="secondary-button" id="diagnosticsRefreshState" type="button">Atualizar estado</button>
+                <button class="secondary-button" id="diagnosticsTestSensors" type="button">Testar sensores</button>
+                <button class="secondary-button" id="runFullDiagnostics" type="button">Verificação completa</button>
+            </div>
+            <p class="diagnostics-last-contact">Última comunicação: <strong id="diagnosticsLastContact">Ainda sem comunicação real</strong></p>
+            <p class="diagnostics-error" id="diagnosticsError" role="status">Sem erros registados.</p>
+            <p class="diagnostics-error" id="fullDiagnosticsResult" role="status">A verificação não aciona equipamentos.</p>
+            <h3 class="diagnostics-subheading">Calibração de temperatura</h3>
+            <p class="section-description">Compara a leitura atual com um termómetro de referência. A correção é limitada a ±10 °C e aplicada às leituras seguintes.</p>
+            <form class="calibration-form" id="temperatureCalibrationForm">
+                <label class="connection-field">Temperatura de referência (°C)
+                    <input id="temperatureReference" type="number" min="-40" max="85" step="0.1" required>
+                </label>
+                <button class="secondary-button" type="submit">Calibrar sensor</button>
+                <span id="temperatureCalibrationStatus" role="status">Correção atual: 0 °C</span>
+            </form>
+            <h3 class="diagnostics-subheading">Sensores</h3>
+            <ul class="diagnostics-list" id="diagnosticSensorList"></ul>
+            <h3 class="diagnostics-subheading">Equipamentos</h3>
+            <ul class="diagnostics-list" id="diagnosticDeviceList"></ul>
+        </section>
+        </div>
+
+        <div class="page-view" id="equipmentPage" data-page-view="equipment" aria-hidden="true">
+        <section class="section-block" id="deviceControls">
+            <div class="section-heading">
+                <div><p class="eyebrow">EQUIPAMENTOS</p><h2 id="roomHeading">Sala</h2></div>
+                <span class="section-note">CONTROLO INDIVIDUAL</span>
+            </div>
+            <p class="section-description">Consulta o estado e controla cada equipamento separadamente.</p>
+            <label class="faucet-duration">Duração da torneira ao ligar
+                <input type="number" id="faucetDuration" min="1" max="60" value="60"> segundos (máximo 60)
+            </label>
+            <div class="device-list">
+                <article class="device-card">
+                    <div class="device-icon window-icon">J</div>
+                    <div class="device-info"><strong id="window1Name">Janela</strong><span id="window1Status">Estado desconhecido</span></div>
+                    <button class="device-action" data-device="window1" data-open="true" type="button">Abrir</button>
+                    <button class="device-action secondary" data-stop-device="window1" type="button">Parar</button>
+                    <button class="device-action secondary" data-device="window1" data-open="false" type="button">Fechar</button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon window-icon">E</div>
+                    <div class="device-info"><strong id="window2Name">Estore</strong><span id="window2Status">Estado desconhecido</span></div>
+                    <button class="device-action" data-device="window2" data-open="true" type="button">Abrir</button>
+                    <button class="device-action secondary" data-stop-device="window2" type="button">Parar</button>
+                    <button class="device-action secondary" data-device="window2" data-open="false" type="button">Fechar</button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L1</div>
+                    <div class="device-info"><strong id="light1Name">Sala</strong><span id="light1Status">Desligada</span><small class="device-last-action" id="light1LastAction">Sem ações registadas</small></div>
+                    <button class="device-toggle" data-toggle-device="light1" type="button" aria-label="Alternar luz da sala" aria-pressed="false"><span></span></button>
+                    <button class="device-action secondary" data-auto-device="light1" type="button" aria-pressed="false">Automático</button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L2</div>
+                    <div class="device-info"><strong id="light2Name">Cozinha</strong><span id="light2Status">Desligada</span></div>
+                    <button class="device-toggle" data-toggle-device="light2" type="button" aria-label="Alternar luz: Cozinha" aria-pressed="false"><span></span></button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L3</div>
+                    <div class="device-info"><strong id="light3Name">Quarto 1</strong><span id="light3Status">Desligada</span></div>
+                    <button class="device-toggle" data-toggle-device="light3" type="button" aria-label="Alternar luz: Quarto 1" aria-pressed="false"><span></span></button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L4</div>
+                    <div class="device-info"><strong id="light4Name">Quarto 2</strong><span id="light4Status">Desligada</span></div>
+                    <button class="device-toggle" data-toggle-device="light4" type="button" aria-label="Alternar luz: Quarto 2" aria-pressed="false"><span></span></button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L5</div>
+                    <div class="device-info"><strong id="light5Name">Casa de banho</strong><span id="light5Status">Desligada</span></div>
+                    <button class="device-toggle" data-toggle-device="light5" type="button" aria-label="Alternar luz: Casa de banho" aria-pressed="false"><span></span></button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon door-icon">L6</div>
+                    <div class="device-info"><strong id="light6Name">Hall/Garagem</strong><span id="light6Status">Desligada</span></div>
+                    <button class="device-toggle" data-toggle-device="light6" type="button" aria-label="Alternar luz: Hall/Garagem" aria-pressed="false"><span></span></button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon window-icon">↻</div>
+                    <div class="device-info"><strong id="fanName">Ventoinha</strong><span id="fanControlStatus">Desligada</span><small class="device-last-action" id="fanLastAction">Sem ações registadas</small></div>
+                    <button class="device-toggle" data-toggle-device="fan" type="button" aria-label="Alternar ventoinha" aria-pressed="false"><span></span></button>
+                    <button class="device-action secondary" data-auto-device="fan" type="button" aria-pressed="false">Automático</button>
+                    <button class="device-action secondary" type="button" data-open-settings="fan">Limites</button>
+                </article>
+                <article class="device-card">
+                    <div class="device-icon water-icon">↓</div>
+                    <div class="device-info"><strong id="faucetName">Torneira</strong><span id="faucetControlStatus">Desligada</span><small id="faucetCountdown">A torneira está fechada.</small></div>
+                    <button class="device-action" data-device="faucet" data-open="true" type="button">Abrir</button>
+                    <button class="device-action secondary" data-device="faucet" data-open="false" type="button">Fechar</button>
+                </article>
+            </div>
+        </section>
+        </div>
+
+        <div class="page-view" id="automationsPage" data-page-view="automations" aria-hidden="true">
+        <section class="section-block" id="automations">
+            <div class="section-heading">
+                <div><p class="eyebrow">A PARTE INTELIGENTE</p><h2>Automatizações</h2></div>
+                <span class="section-note">REGRAS</span>
+            </div>
+            <p class="section-description">Cria uma regra: “Quando acontecer X, executar Y”. As regras locais devem continuar a funcionar sem Wi-Fi.</p>
+            <p class="automation-notice" id="automationNotice">Em demonstração, nenhum comando chega à ESP32.</p>
+            <form class="automation-form" id="automationForm">
+                <label>Nome da regra<input type="text" id="automationName" maxlength="60" placeholder="Ex.: Fechar janelas quando chover" required></label>
+                <label>Quando acontecer
+                    <select id="automationCondition">
+                        <option value="rain">É detetada chuva</option>
+                        <option value="dark_motion">Está escuro e há movimento</option>
+                        <option value="no_motion">Não há movimento durante um tempo</option>
+                        <option value="temperature_above">A temperatura ultrapassa um limite</option>
+                        <option value="temperature_below">A temperatura desce abaixo de um limite</option>
+                        <option value="faucet_open_for">A torneira fica aberta durante um tempo</option>
+                        <option value="scheduled_time">Chega a hora programada</option>
+                    </select>
+                </label>
+                <div class="automation-parameters" id="automationParameters"></div>
+                <label>Equipamento
+                    <select id="automationDevice">
+                        <option value="both_windows">Janela e estore</option><option value="window1">Janela</option><option value="window2">Estore</option>
+                        <option value="both_lights">Todas as luzes</option><option value="light1">Sala</option><option value="light2">Cozinha</option><option value="light3">Quarto 1</option><option value="light4">Quarto 2</option><option value="light5">Casa de banho</option><option value="light6">Hall/Garagem</option>
+                        <option value="fan">Ventoinha</option><option value="faucet">Torneira</option>
+                    </select>
+                </label>
+                <label>Ação<select id="automationAction"></select></label>
+                <fieldset class="automation-days automation-mode-days">
+                    <legend>Executar nos modos</legend>
+                    <label><input type="checkbox" name="automationMode" value="auto" checked> Automático</label>
+                    <label><input type="checkbox" name="automationMode" value="eco"> ECO</label>
+                    <label><input type="checkbox" name="automationMode" value="night"> Noite</label>
+                    <label><input type="checkbox" name="automationMode" value="away"> Ausente</label>
+                </fieldset>
+                <div class="automation-form-actions">
+                    <button class="save-settings" id="saveAutomation" type="submit">Guardar automatização</button>
+                    <button class="secondary-button" id="cancelAutomationEdit" type="button" hidden>Cancelar edição</button>
+                </div>
+            </form>
+            <div class="automation-list-heading"><h3>Regras configuradas</h3><span id="automationCount">0 regras</span></div>
+            <ul class="automation-list" id="automationList"></ul>
+        </section>
+        </div>
+
+        <div class="page-view" id="schedulesPage" data-page-view="schedules" aria-hidden="true">
+        <section class="section-block" id="scheduleSection">
+            <div class="section-heading">
+                <div><p class="eyebrow">PROGRAMAR TAREFAS</p><h2>Horários</h2></div>
+                <span class="section-note" id="scheduleClockStatus">A verificar RTC</span>
+            </div>
+            <p class="section-description">Os horários são enviados à ESP32 e executados localmente pelo RTC, mesmo sem Wi-Fi.</p>
+            <section class="schedule-calendar-panel" aria-labelledby="scheduleCalendarTitle">
+                <div class="schedule-calendar-heading"><h3 id="scheduleCalendarTitle">Agenda dos próximos 7 dias</h3><span>Horários ativos</span></div>
+                <div class="schedule-calendar" id="scheduleCalendar" aria-live="polite"></div>
+            </section>
+            <form class="schedule-form" id="scheduleForm">
+                <label>Nome<input type="text" id="scheduleName" maxlength="60" placeholder="Ex.: Fechar janelas à noite" required></label>
+                <label>Equipamento
+                    <select id="scheduleDevice">
+                        <option value="both_windows">Janela e estore</option><option value="window1">Janela</option><option value="window2">Estore</option>
+                        <option value="both_lights">Todas as luzes</option><option value="light1">Sala</option><option value="light2">Cozinha</option><option value="light3">Quarto 1</option><option value="light4">Quarto 2</option><option value="light5">Casa de banho</option><option value="light6">Hall/Garagem</option>
+                        <option value="fan">Ventoinha</option><option value="faucet">Torneira</option>
+                        <option value="mode">Modo da casa</option>
+                    </select>
+                </label>
+                <label>Ação
+                    <select id="scheduleAction">
+                        <option value="closed">Fechar</option><option value="open">Abrir</option>
+                        <option value="off">Desligar</option><option value="on">Ligar</option>
+                        <option value="auto">Automático</option><option value="eco">ECO</option><option value="night">Noite</option><option value="away">Ausente</option>
+                    </select>
+                </label>
+                <label>Hora<input type="time" id="scheduleTime" required></label>
+                <fieldset>
+                    <legend>Dias</legend>
+                    <label><input type="checkbox" name="scheduleDay" value="0"> Seg</label><label><input type="checkbox" name="scheduleDay" value="1"> Ter</label>
+                    <label><input type="checkbox" name="scheduleDay" value="2"> Qua</label><label><input type="checkbox" name="scheduleDay" value="3"> Qui</label>
+                    <label><input type="checkbox" name="scheduleDay" value="4"> Sex</label><label><input type="checkbox" name="scheduleDay" value="5"> Sáb</label>
+                    <label><input type="checkbox" name="scheduleDay" value="6"> Dom</label>
+                </fieldset>
+                <label class="schedule-repeat"><input type="checkbox" id="scheduleRepeat" checked> Repetir semanalmente</label>
+                <label class="schedule-enabled"><input type="checkbox" id="scheduleEnabled" checked> Ativo</label>
+                <div class="schedule-form-actions">
+                    <button class="save-settings" id="saveSchedule" type="submit">Guardar horário</button>
+                    <button class="secondary-button" id="executeScheduleNow" type="button">Executar agora</button>
+                    <button class="secondary-button" id="cancelScheduleEdit" type="button" hidden>Cancelar edição</button>
+                </div>
+            </form>
+            <div class="schedule-list-heading"><h3>Horários programados</h3></div>
+            <ul class="schedule-list" id="scheduleList"></ul>
+        </section>
+        </div>
+
+        <div class="page-view" id="historyPage" data-page-view="history" aria-hidden="true">
+        <section class="section-block" id="historySection">
+            <div class="section-heading">
+                <div><p class="eyebrow">REGISTO DA CASA</p><h2>Histórico</h2></div>
+                <span class="section-note" id="historyStatus">Atividade recente</span>
+            </div>
+            <p class="section-description">Ordens enviadas e resultados comunicados pelos equipamentos.</p>
+            <div class="history-controls">
+                <label>Equipamento
+                    <select id="historyDeviceFilter"><option value="">Todos</option></select>
+                </label>
+                <label>Tipo de ação
+                    <select id="historyActionFilter">
+                        <option value="">Todas</option><option value="Abrir">Abrir</option><option value="Fechar">Fechar</option>
+                        <option value="Ligar">Ligar</option><option value="Desligar">Desligar</option>
+                        <option value="modo">Modo</option><option value="automatização">Automatização</option>
+                    </select>
+                </label>
+                <label>Desde<input id="historyFrom" type="date"></label>
+                <label>Até<input id="historyTo" type="date"></label>
+                <button class="secondary-button" id="refreshHistory" type="button">Atualizar histórico</button>
+                <button class="secondary-button" id="exportHistory" type="button">Exportar CSV</button>
+                <button class="secondary-button" id="clearHistory" type="button">Limpar histórico</button>
+            </div>
+            <ul class="history-list" id="historyList"></ul>
+        </section>
+        </div>
+
+    <section class="page-view settings-page" id="settingsModal" data-page-view="settings" aria-hidden="true">
+        <section class="settings-panel" role="region" aria-labelledby="settingsTitle">
+            <div class="settings-header">
+                <div><p class="eyebrow">PREFERÊNCIAS DA CASA</p><h2 id="settingsTitle">Definições</h2></div>
+                <button class="secondary-button close-settings" id="closeSettings" type="button">Voltar ao início</button>
+            </div>
+            <section class="settings-section">
+                <h3>Configuração da casa</h3>
+                <label class="connection-field">Nome da casa<input id="settingHouseName" type="text" maxlength="40"></label>
+                <label class="connection-field">Nome da divisão<input id="settingRoomName" type="text" maxlength="40"></label>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Janela<input id="settingWindow1Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Estore<input id="settingWindow2Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 1<input id="settingLight1Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 2<input id="settingLight2Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 3<input id="settingLight3Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 4<input id="settingLight4Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 5<input id="settingLight5Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Luz da divisão 6<input id="settingLight6Name" type="text" maxlength="40"></label>
+                    <label class="connection-field">Ventilação<input id="settingFanName" type="text" maxlength="40"></label>
+                    <label class="connection-field">Torneira<input id="settingFaucetName" type="text" maxlength="40"></label>
+                </div>
+            </section>
+            <section class="settings-section">
+                <h3>Configuração dos sensores</h3>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Ligar ventilação acima de (°C)<input id="settingFanOnTemp" type="number" min="-40" max="85" step="0.5"></label>
+                    <label class="connection-field">Desligar ventilação abaixo de (°C)<input id="settingFanOffTemp" type="number" min="-40" max="85" step="0.5"></label>
+                    <label class="connection-field">Correção do sensor de temperatura (°C)<input id="settingTemperatureOffset" type="number" min="-10" max="10" step="0.1"></label>
+                    <label class="connection-field">Limite de escuridão (lx)<input id="settingDarkThreshold" type="number" min="0" max="65535" step="1"></label>
+                    <label class="connection-field">Tempo sem movimento (s)<input id="settingNoMotionSeconds" type="number" min="1" max="86400"></label>
+                    <label class="connection-field">Duração da torneira (s, máximo 60)<input id="settingFaucetSeconds" type="number" min="1" max="60"></label>
+                </div>
+                <h3>Gestão térmica sazonal</h3>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Estação<select id="settingSeason"><option value="summer">Verão (ventilação natural e sombreamento)</option><option value="winter">Inverno (ganhos solares)</option><option value="off">Desligada</option></select></label>
+                    <label class="connection-field">Temperatura-alvo (°C)<input id="settingTargetTemp" type="number" min="15" max="35" step="0.5"></label>
+                </div>
+                <p class="settings-help">Nos modos Automático e ECO, a gestão térmica usa as temperaturas interior e exterior e a luminosidade para comandar a janela, o estore e a ventoinha (o ECO não usa a ventoinha). Uma ordem manual pausa-a durante 10 minutos. Os limites de ventilação só se aplicam com a gestão térmica desligada.</p>
+            </section>
+            <section class="settings-section">
+                <h3>Modos de funcionamento</h3>
+                <p>Consulta as ações de cada modo e guarda-as antes de as aplicar.</p>
+                <div class="mode-config-grid" id="modeConfigGrid"></div>
+                <button class="secondary-button" id="saveModeProfiles" type="button">Guardar modos</button>
+            </section>
+            <section class="settings-section">
+                <h3>Ligação e estado do sistema</h3>
+                <label class="connection-field">Endereço API da ESP32<input type="url" id="esp32Url" placeholder="http://192.168.1.50" autocomplete="url"></label>
+                <label class="connection-field">Token API<input type="password" id="esp32Token" autocomplete="off"></label>
+                <div class="connection-actions">
+                    <button class="save-settings" id="connectEsp32" type="button">Guardar e ligar</button>
+                    <button class="secondary-button" id="useDemoMode" type="button">Usar demonstração</button>
+                    <button class="secondary-button" id="testConnection" type="button">Testar ligação</button>
+                </div>
+                <button class="secondary-button" id="changeIp" type="button">Alterar endereço IP</button>
+                <p class="connection-help" id="connectionHelp">Em demonstração; os comandos não chegam à placa.</p>
+                <div class="system-info-row"><span>Wi-Fi / API</span><strong id="systemConnectionStatus">Demonstração</strong></div>
+                <div class="system-info-row"><span>RTC</span><strong id="systemRtcStatus">Sem ligação</strong></div>
+                <div class="system-info-row"><span>Último contacto</span><strong id="systemLastContact">--</strong></div>
+                <div class="settings-test-row">
+                    <button class="secondary-button" id="testSensors" type="button">Testar sensores</button>
+                    <span id="sensorTestResult">Ainda não testados.</span>
+                </div>
+            </section>
+            <section class="settings-section">
+                <h3>Segurança e manutenção</h3>
+                <p>Esta versão destina-se a uma rede local de confiança. Não reencaminhes a API para a Internet nem partilhes o token.</p>
+                <p id="diagnosticStatus">Diagnóstico: à espera de ligação.</p>
+                <div class="backup-actions">
+                    <button class="secondary-button" id="exportConfiguration" type="button">Exportar Configuração</button>
+                    <label class="secondary-button import-config-button" for="importConfigurationFile">Importar Configuração</label>
+                    <input id="importConfigurationFile" type="file" accept="application/json,.json" hidden>
+                </div>
+                <button class="secondary-button" id="restoreDefaults" type="button">Restaurar Valores Predefinidos</button>
+            </section>
+            <button class="save-settings" id="saveSettings" type="button">Guardar definições</button>
+        </section>
+    </section>
+
+    <section class="page-view alerts-page" id="notificationsModal" data-page-view="alerts" aria-hidden="true">
+        <section class="settings-panel notification-panel" role="region" aria-labelledby="notificationsTitle">
+            <div class="settings-header">
+                <div><p class="eyebrow">ESTADO DA CASA</p><h2 id="notificationsTitle">Alertas</h2></div>
+                <button class="secondary-button" id="closeNotifications" type="button">Voltar ao início</button>
+            </div>
+            <ul class="history-list" id="notificationList"></ul>
+            <button class="secondary-button" id="clearNotifications" type="button">Marcar todas como lidas</button>
+        </section>
+    </section>
+
+    <section class="page-view about-page" id="aboutPage" data-page-view="about" aria-hidden="true">
+        <section class="about-hero">
+            <p class="eyebrow">PROVA DE APTIDÃO PROFISSIONAL · 2026/2027</p>
+            <h2>DOMUS+ — Casa Inteligente Automatizada com Gestão Térmica Sazonal e Visualização 3D</h2>
+            <p>Uma maquete de casa controlada por uma ESP32 e por este site. A casa lê sensores, decide sozinha e continua a funcionar sem Wi-Fi.</p>
+            <dl class="about-credits">
+                <div><dt>Autor</dt><dd>Pedro Miguel Borges Pinto</dd></div>
+                <div><dt>Curso</dt><dd>Programador de Informática · Profitecla</dd></div>
+                <div><dt>Orientador educativo</dt><dd>Miguel Simões</dd></div>
+                <div><dt>Professor responsável</dt><dd>Filipe Martins</dd></div>
+            </dl>
+        </section>
+        <section class="section-block">
+            <div class="section-heading"><div><p class="eyebrow">COMO FUNCIONA</p><h2>Três passos, sem parar</h2></div></div>
+            <ol class="about-steps">
+                <li><strong>Medir</strong><span>2 DHT22, BH1750, chuva (FC-37), movimento (PIR) e contactos de fecho.</span></li>
+                <li><strong>Decidir</strong><span>A ESP32 aplica a segurança, a gestão térmica, as automatizações e os horários.</span></li>
+                <li><strong>Agir</strong><span>Janela e estore (servos), 6 luzes, ventoinha e torneira (MOSFET).</span></li>
+            </ol>
+        </section>
+        <section class="section-block">
+            <div class="section-heading"><div><p class="eyebrow">ARQUITETURA</p><h2>Do sensor ao ecrã</h2></div></div>
+            <svg class="about-diagram" viewBox="0 0 900 190" role="img" aria-label="Sensores ligam à ESP32, que comanda os atuadores e comunica com o site por uma API REST com token">
+                <g class="ad-box"><rect x="10" y="40" width="190" height="110" rx="16"/><text x="105" y="88">Sensores</text><text class="ad-sub" x="105" y="114">DHT22 · BH1750 · PIR</text></g>
+                <g class="ad-box ad-main"><rect x="300" y="20" width="300" height="150" rx="18"/><text x="450" y="78">ESP32</text><text class="ad-sub" x="450" y="106">regras · horários · NVS</text><text class="ad-sub" x="450" y="130">API REST com token</text></g>
+                <g class="ad-box"><rect x="700" y="40" width="190" height="110" rx="16"/><text x="795" y="88">Atuadores</text><text class="ad-sub" x="795" y="114">servos · LEDs · MOSFET</text></g>
+                <path class="ad-arrow" d="M204 95h86m-12-8 12 8-12 8M604 95h86m-12-8 12 8-12 8"/>
+            </svg>
+            <p class="section-description">O site comunica com a ESP32 na rede Wi-Fi local: consulta <code>GET /api/state</code> a cada 5 segundos e envia ordens como <code>POST /api/devices/light3</code>.</p>
+        </section>
+        <section class="section-block">
+            <div class="section-heading"><div><p class="eyebrow">TECNOLOGIAS</p><h2>Feito com</h2></div></div>
+            <ul class="about-tags"><li>ESP32 · C/C++</li><li>ArduinoJson</li><li>API REST + JSON</li><li>HTML · CSS · JavaScript</li><li>SVG isométrico</li><li>DS3231 + NTP</li><li>Memória NVS</li><li>Playwright (testes)</li></ul>
+        </section>
+        <section class="section-block">
+            <div class="section-heading"><div><p class="eyebrow">ATALHOS</p><h2>Usar o site mais depressa</h2></div></div>
+            <ul class="about-shortcuts">
+                <li><kbd>Ctrl</kbd> + <kbd>K</kbd> ou <kbd>/</kbd><span>Pesquisa rápida: páginas, modos, luzes, cenários</span></li>
+                <li><kbd>Esc</kbd><span>Fechar a pesquisa ou o menu</span></li>
+                <li><kbd>Shift</kbd> + <kbd>D</kbd><span>Mudar entre tema claro e escuro</span></li>
+            </ul>
+        </section>
+    </section>
+        <footer class="app-footer"><strong>DOMUS+</strong><span id="footerHouseName">A minha casa</span></footer>
+        </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="command-palette" id="commandPalette" role="dialog" aria-modal="true" aria-labelledby="commandPaletteLabel" hidden>
+        <div class="command-box">
+            <label class="command-input-row" id="commandPaletteLabel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                <input id="commandInput" type="text" placeholder="Ex.: ligar sala, modo noite, chuva…" autocomplete="off" aria-controls="commandList">
+                <kbd>Esc</kbd>
+            </label>
+            <ul class="command-list" id="commandList" role="listbox"></ul>
+            <p class="command-help">↑ ↓ para escolher · Enter para executar</p>
+        </div>
+    </div>
+    </main>
+    <script src="app.js"></script>
+    <script src="interativo.js"></script>
+</body>
+</html>

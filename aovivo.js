@@ -30,6 +30,7 @@ const liveId = Math.random().toString(36).slice(2, 10);   // identifica este apa
 
 let liveSendTimer = 0;
 let liveApplying = false;       // true enquanto se aplica uma mensagem recebida
+let liveSenderNotifies = true;  // o aparelho que enviou a mensagem também envia avisos para o telemóvel?
 let liveManualOrder = false;    // a ação foi uma ordem manual (janela, estore, ventoinha)
 let liveBanner = null;
 let liveLastMessageAt = 0;
@@ -71,7 +72,8 @@ async function sendLiveNow() {
         state.faucetRemainingSeconds = Math.max(0, Math.ceil((faucetDemoStopsAt - Date.now()) / 1000));
     }
     const message = JSON.stringify({
-        v: 3, from: liveId, manual: liveManualOrder, page: currentPageName(), state
+        v: 3, from: liveId, manual: liveManualOrder, page: currentPageName(), state,
+        notify: Boolean((houseSettings.ntfyTopic || "").trim())   // este aparelho envia avisos
     });
     liveManualOrder = false;
     try {
@@ -91,8 +93,12 @@ function applyLiveMessage(text) {
     if (connectionMode !== "demo") return;
     liveLastMessageAt = Date.now();
     liveApplying = true;
+    liveSenderNotifies = data.notify === true;
+    const before = JSON.parse(JSON.stringify(demoState));
     try {
         Object.assign(demoState, data.state);
+        // Quem enviou não manda avisos: este aparelho avisa do que mudou lá
+        if (!liveSenderNotifies && typeof noticeRemoteChanges === "function") noticeRemoteChanges(before, demoState);
         // Temporizador da torneira continua daqui
         faucetDemoStopsAt = demoState.faucetOn
             ? Date.now() + Number(demoState.faucetRemainingSeconds || 0) * 1000 : 0;

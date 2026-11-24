@@ -93,7 +93,8 @@ const DEFAULT_SETTINGS = {
     temperatureOffsetC: 0,
     autoDevices: { light1: false, fan: false },
     weather: { city: "Vizela", lat: 41.38, lon: -8.31 },   // previsão do tempo (Open-Meteo)
-    ntfyTopic: ""                                           // avisos no telemóvel (app ntfy)
+    ntfyTopic: "",                                          // avisos no telemóvel (app ntfy)
+    noticeLevel: "all"                                      // "all" = tudo; "important" = só o importante
 };
 
 const MODE_NAMES = {
@@ -1321,7 +1322,8 @@ async function saveHouseSettings() {
             lat: Number($("settingWeatherCoords").dataset.lat),
             lon: Number($("settingWeatherCoords").dataset.lon)
         },
-        ntfyTopic: $("settingNtfyTopic").value.trim()
+        ntfyTopic: $("settingNtfyTopic").value.trim(),
+        noticeLevel: $("settingNoticeLevel").value === "important" ? "important" : "all"
     };
     if (Object.values(textSettings.devices).some((value) => !value) ||
         !textSettings.homeName || !textSettings.roomName ||

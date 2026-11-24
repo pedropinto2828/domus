@@ -768,12 +768,15 @@
                 <button class="secondary-button" id="findWeatherCity" type="button">Procurar cidade</button>
                 <p class="settings-help">Nos modos Automático e ECO, a casa prepara-se antes de o tempo mudar: se a previsão dá 70 % ou mais de chuva na próxima hora, fecha a janela; no verão, se vêm 5 °C acima da temperatura-alvo nas próximas 3 horas, desce o estore durante o dia. A previsão é do serviço gratuito Open-Meteo e é atualizada a cada 30 minutos. Sem Internet, a casa continua só com os sensores.</p>
                 <h3>Avisos no telemóvel</h3>
-                <label class="connection-field">Tópico dos avisos (app ntfy)<input id="settingNtfyTopic" type="text" maxlength="64" placeholder="ex.: domus-7k3q9x2m" autocomplete="off"></label>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Tópico dos avisos (app ntfy)<input id="settingNtfyTopic" type="text" maxlength="64" placeholder="ex.: domus-7k3q9x2m" autocomplete="off"></label>
+                    <label class="connection-field">Avisar de<select id="settingNoticeLevel"><option value="all">Tudo (cada ação da casa)</option><option value="important">Só o importante</option></select></label>
+                </div>
                 <div class="connection-actions">
                     <button class="secondary-button" id="generateNtfyTopic" type="button">Gerar tópico</button>
                     <button class="secondary-button" id="testNtfy" type="button">Enviar aviso de teste</button>
                 </div>
-                <p class="settings-help">1. Instala no telemóvel a app gratuita <strong>ntfy</strong>. 2. Carrega em + e escreve o mesmo tópico. 3. Guarda as definições e envia um aviso de teste. A casa avisa quando começa a chover, quando se prepara para chuva ou calor, quando a torneira fecha sozinha, quando há movimento no modo Ausente e quando um sensor deixa de responder. Usa um tópico difícil de adivinhar: quem o souber também recebe os avisos.</p>
+                <p class="settings-help">1. Instala no telemóvel a app gratuita <strong>ntfy</strong>. 2. Carrega em + e escreve o mesmo tópico. 3. Guarda as definições e envia um aviso de teste. Com <strong>Só o importante</strong>, a casa avisa quando começa a chover, quando se prepara para chuva ou calor, quando a torneira fecha sozinha, quando há movimento no modo Ausente e quando um sensor deixa de responder. Com <strong>Tudo</strong>, avisa também de cada ação: luzes, janela, estore, ventoinha, modos, horários e automatizações, venham de onde vierem. Usa um tópico difícil de adivinhar: quem o souber também recebe os avisos.</p>
             </section>
             <section class="settings-section">
                 <h3>Modos de funcionamento</h3>
@@ -885,8 +888,8 @@
     </div>
     </main>
     <script src="app.js"></script>
-    <script src="interativo.js?v=8"></script>
-    <script src="previsao.js?v=8"></script>
-    <script src="aovivo.js?v=8"></script>
+    <script src="interativo.js?v=9"></script>
+    <script src="previsao.js?v=9"></script>
+    <script src="aovivo.js?v=9"></script>
 </body>
 </html>

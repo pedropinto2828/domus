@@ -79,10 +79,11 @@ function ntfyTopicValid(topic) {
 }
 
 // Envia um aviso para o telemóvel (só em demonstração; com a ESP32 é a placa que envia).
-// Não envia quando está a aplicar uma mensagem do modo ao vivo: o aviso já saiu do outro aparelho.
+// Ao aplicar uma mensagem do modo ao vivo, só envia se o outro aparelho não enviar avisos
+// (assim não há avisos repetidos nem avisos perdidos).
 function sendPhoneNotice(title, message, tag = "house", priority = 3, topicOverride) {
     if (connectionMode !== "demo") return;
-    if (typeof liveApplying !== "undefined" && liveApplying) return;
+    if (typeof liveApplying !== "undefined" && liveApplying && liveSenderNotifies) return;
     const topic = (topicOverride || houseSettings.ntfyTopic || "").trim();
     if (!ntfyTopicValid(topic)) return;
     // Pedido simples (texto com JSON): o ntfy aceita-o na raiz sem pedido OPTIONS
@@ -120,6 +121,42 @@ function generateNtfyTopic() {
     const random = Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) => (n % 36).toString(36)).join("");
     $("settingNtfyTopic").value = `domus-${random}`;
     showToast("Tópico gerado. Escreve-o na app ntfy e guarda as definições.");
+}
+
+// Nível "Tudo": cada entrada do histórico também vai para o telemóvel.
+// As situações com aviso próprio (chuva, previsão, torneira, modo Ausente) não se repetem.
+const NOTICE_OWN_SOURCES = ["segurança", "previsão do tempo", "temporizador", "modo Ausente"];
+
+function noticeLevelAll() {
+    return (houseSettings.noticeLevel || "all") === "all";
+}
+
+const baseAppendHistory = appendHistory;
+appendHistory = function appendHistoryWithNotice(entry) {
+    baseAppendHistory(entry);
+    if (!noticeLevelAll() || NOTICE_OWN_SOURCES.includes(entry.source)) return;
+    const result = String(entry.result || "").replace(/^simulação · /, "");
+    sendPhoneNotice(`${entry.device}: ${entry.action}`, `${entry.source}${result ? ` · ${result}` : ""}`, "house", 2);
+};
+
+// Modo ao vivo: alguém mexeu noutro aparelho que não envia avisos (por exemplo, o telemóvel
+// de quem assiste). Este aparelho avisa do que mudou, numa só mensagem.
+function noticeRemoteChanges(before, after) {
+    if (!noticeLevelAll()) return;
+    const changes = [];
+    const onOff = (value) => (value ? "ligada" : "desligada");
+    if (before.windows && after.windows) {
+        if (before.windows[0] !== after.windows[0]) changes.push(`${simDeviceName("window1")} ${after.windows[0] === "open" ? "aberta" : "fechada"}`);
+        if (before.windows[1] !== after.windows[1]) changes.push(`${simDeviceName("window2")} ${after.windows[1] === "open" ? "em cima" : "em baixo"}`);
+    }
+    (after.lights || []).forEach((on, index) => {
+        if (before.lights && before.lights[index] !== on) changes.push(`luz ${simDeviceName(LIGHT_IDS[index])} ${on ? "acesa" : "apagada"}`);
+    });
+    if (before.fanOn !== after.fanOn) changes.push(`${simDeviceName("fan")} ${onOff(after.fanOn)}`);
+    if (before.faucetOn !== after.faucetOn) changes.push(`${simDeviceName("faucet")} ${after.faucetOn ? "aberta" : "fechada"}`);
+    if (before.activeMode !== after.activeMode) changes.push(`modo ${MODE_NAMES[after.activeMode] || after.activeMode}`);
+    if (!changes.length) return;
+    sendPhoneNotice("Mudança noutro aparelho", changes.join(", "), "iphone", 2);
 }
 
 /* ---------- procurar a cidade (Open-Meteo Geocoding) ---------- */
@@ -169,6 +206,7 @@ renderHouseSettings = function renderHouseSettingsWithWeather() {
     $("settingWeatherCity").value = weather.city;
     renderWeatherCoords(weather);
     $("settingNtfyTopic").value = houseSettings.ntfyTopic || "";
+    $("settingNoticeLevel").value = houseSettings.noticeLevel === "important" ? "important" : "all";
 };
 
 $("findWeatherCity").addEventListener("click", findWeatherCity);

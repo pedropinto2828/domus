@@ -529,3 +529,5 @@ html[data-theme="dark"] .command-help { border-color: #2a3d5c; }
 .hero-forecast.rain { color: #ffd38a; font-weight: 600; }
 .weather-coords { display: block; font-size: 15px; padding: 10px 0; }
 .settings-help + h3 { margin-top: 22px; }
+.notice-status { margin: 10px 0 4px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #fdf1e4; color: #a84e15; }
+.notice-status.ok { background: #e6f3ea; color: #1f6b3a; }

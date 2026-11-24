@@ -113,14 +113,50 @@ async function sendTestNotice() {
         }
         return;
     }
+    storeNoticeSettings();   // o teste e os outros avisos usam sempre o mesmo tópico
     sendPhoneNotice("Teste", "Os avisos do DOMUS+ estão a funcionar.", "white_check_mark", 3, topic);
-    showToast("Aviso de teste enviado. Deve aparecer no telemóvel dentro de segundos.");
+    showToast("Aviso de teste enviado. Os outros avisos vão para o mesmo tópico.");
+}
+
+// Em demonstração, o tópico e o nível ficam guardados logo que mudam
+// (antes, só ficavam com "Guardar definições"; o teste chegava e os outros avisos não).
+function storeNoticeSettings() {
+    if (connectionMode !== "demo") { renderNoticeStatus(); return; }
+    const topic = $("settingNtfyTopic").value.trim();
+    if (topic && !ntfyTopicValid(topic)) { renderNoticeStatus(); return; }
+    houseSettings.ntfyTopic = topic;
+    houseSettings.noticeLevel = $("settingNoticeLevel").value === "important" ? "important" : "all";
+    saveDemoSettings();
+    renderNoticeStatus();
+}
+
+function renderNoticeStatus() {
+    const status = $("noticeStatus");
+    if (!status) return;
+    const saved = houseSettings.ntfyTopic || "";
+    const typed = $("settingNtfyTopic").value.trim();
+    let text, ok = false;
+    if (typed && !ntfyTopicValid(typed)) {
+        text = "O tópico só pode ter letras, números, - e _ .";
+    } else if (connectionMode === "esp32" && typed !== saved) {
+        text = "Carrega em Guardar definições para a casa ficar com este tópico.";
+    } else if (!saved) {
+        text = "Avisos desligados: escreve ou gera um tópico.";
+    } else {
+        ok = true;
+        const level = houseSettings.noticeLevel === "important" ? "só o importante" : "tudo";
+        text = connectionMode === "esp32"
+            ? `✓ Avisos ligados (${level}): a casa envia para o tópico ${saved}.`
+            : `✓ Avisos ligados (${level}) para o tópico ${saved}. Em demonstração, este site tem de estar aberto neste aparelho.`;
+    }
+    status.textContent = text;
+    status.classList.toggle("ok", ok);
 }
 
 function generateNtfyTopic() {
     const random = Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) => (n % 36).toString(36)).join("");
     $("settingNtfyTopic").value = `domus-${random}`;
-    showToast("Tópico gerado. Escreve-o na app ntfy e guarda as definições.");
+    showToast("Tópico gerado. Escreve-o igual na app ntfy.");
 }
 
 // Nível "Tudo": cada entrada do histórico também vai para o telemóvel.
@@ -212,10 +248,14 @@ renderHouseSettings = function renderHouseSettingsWithWeather() {
     renderWeatherCoords(weather);
     $("settingNtfyTopic").value = houseSettings.ntfyTopic || "";
     $("settingNoticeLevel").value = houseSettings.noticeLevel === "important" ? "important" : "all";
+    renderNoticeStatus();
 };
 
 $("findWeatherCity").addEventListener("click", findWeatherCity);
-$("generateNtfyTopic").addEventListener("click", generateNtfyTopic);
+$("generateNtfyTopic").addEventListener("click", () => { generateNtfyTopic(); storeNoticeSettings(); });
+$("settingNtfyTopic").addEventListener("change", storeNoticeSettings);
+$("settingNtfyTopic").addEventListener("input", renderNoticeStatus);
+$("settingNoticeLevel").addEventListener("change", storeNoticeSettings);
 $("testNtfy").addEventListener("click", sendTestNotice);
 renderHouseSettings();
 fetchRealForecast();

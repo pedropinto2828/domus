@@ -296,7 +296,7 @@ function runSimulation() {
             const wasOpen = s.windows[0] !== "closed";
             simApply("window1", false, "segurança", "chuva detetada");
             addNotification({ title: "Chuva detetada", message: "A janela foi fechada automaticamente (simulação).", severity: "warning" });
-            sendPhoneNotice("Começou a chover", wasOpen ? "A janela foi fechada automaticamente." : "A janela já estava fechada.", "cloud_with_rain", 4);
+            sendPhoneNotice("Começou a chover", wasOpen ? "A janela foi fechada automaticamente." : "A janela já estava fechada.", "cloud_with_rain", 5);
         }
     } else {
         simRainLatched = false;
@@ -341,12 +341,12 @@ function runSimulation() {
         const season = s.season || houseSettings.season || "off";
         if (rainSoon(s) && s.windows[0] === "open" &&
             simApply("window1", false, "previsão do tempo", `${forecast.rainProbability} % de chuva na próxima hora`)) {
-            sendPhoneNotice("Vai chover", `Previsão de ${forecast.rainProbability} % de chuva na próxima hora: fechei a janela antes.`, "umbrella", 3);
+            sendPhoneNotice("Vai chover", `Previsão de ${forecast.rainProbability} % de chuva na próxima hora: fechei a janela antes.`, "umbrella", 4);
         }
         if (season === "summer" && isFiniteNumber(s.luminosityLux) && s.luminosityLux > 50 && heatSoon(s, target) &&
             s.windows[1] !== "closed" &&
             simApply("window2", false, "previsão do tempo", `máxima de ${numberText(forecast.tempMaxC)} °C nas próximas 3 h`)) {
-            sendPhoneNotice("Vem calor", `Previsão de ${Math.round(forecast.tempMaxC)} °C: desci o estore para a casa não aquecer.`, "sunny", 3);
+            sendPhoneNotice("Vem calor", `Previsão de ${Math.round(forecast.tempMaxC)} °C: desci o estore para a casa não aquecer.`, "sunny", 4);
         }
     }
 

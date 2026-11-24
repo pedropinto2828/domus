@@ -81,7 +81,9 @@ function ntfyTopicValid(topic) {
 // Envia um aviso para o telemóvel (só em demonstração; com a ESP32 é a placa que envia).
 // Ao aplicar uma mensagem do modo ao vivo, só envia se o outro aparelho não enviar avisos
 // (assim não há avisos repetidos nem avisos perdidos).
-function sendPhoneNotice(title, message, tag = "house", priority = 3, topicOverride) {
+// Prioridade 4 (alta) ou 5 (máxima): o telemóvel toca, vibra e acende o ecrã.
+// Com 2 (baixa) ou 3, a app ntfy pode mostrar o aviso sem acender o ecrã.
+function sendPhoneNotice(title, message, tag = "house", priority = 4, topicOverride) {
     if (connectionMode !== "demo") return;
     if (typeof liveApplying !== "undefined" && liveApplying && liveSenderNotifies) return;
     const topic = (topicOverride || houseSettings.ntfyTopic || "").trim();
@@ -114,7 +116,7 @@ async function sendTestNotice() {
         return;
     }
     storeNoticeSettings();   // o teste e os outros avisos usam sempre o mesmo tópico
-    sendPhoneNotice("Teste", "Os avisos do DOMUS+ estão a funcionar.", "white_check_mark", 3, topic);
+    sendPhoneNotice("Teste", "Os avisos do DOMUS+ estão a funcionar.", "white_check_mark", 4, topic);
     showToast("Aviso de teste enviado. Os outros avisos vão para o mesmo tópico.");
 }
 
@@ -177,7 +179,7 @@ appendHistory = function appendHistoryWithNotice(entry) {
     };
     const origin = origins[entry.source] || entry.source || "Casa";
     const reason = String(entry.result || "").replace(/^simulação( · )?/, "");
-    sendPhoneNotice(`${entry.device}: ${entry.action}`, reason ? `${origin}: ${reason}` : `${origin}.`, "house", 2);
+    sendPhoneNotice(`${entry.device}: ${entry.action}`, reason ? `${origin}: ${reason}` : `${origin}.`, "house", 4);
 };
 
 // Modo ao vivo: alguém mexeu noutro aparelho que não envia avisos (por exemplo, o telemóvel
@@ -197,7 +199,7 @@ function noticeRemoteChanges(before, after) {
     if (before.faucetOn !== after.faucetOn) changes.push(`${simDeviceName("faucet")} ${after.faucetOn ? "aberta" : "fechada"}`);
     if (before.activeMode !== after.activeMode) changes.push(`modo ${MODE_NAMES[after.activeMode] || after.activeMode}`);
     if (!changes.length) return;
-    sendPhoneNotice("Mudança noutro aparelho", changes.join(", "), "iphone", 2);
+    sendPhoneNotice("Mudança noutro aparelho", changes.join(", "), "iphone", 4);
 }
 
 /* ---------- procurar a cidade (Open-Meteo Geocoding) ---------- */

@@ -3695,7 +3695,7 @@ async function init() {
                     result: "simulação"
                 });
                 if (typeof sendPhoneNotice === "function") {
-                    sendPhoneNotice("Torneira fechada", "A torneira fechou-se sozinha ao fim do tempo definido.", "droplet", 2);
+                    sendPhoneNotice("Torneira fechada", "A torneira fechou-se sozinha ao fim do tempo definido.", "droplet", 4);
                 }
             }
             renderState(demoState);

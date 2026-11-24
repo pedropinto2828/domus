@@ -135,8 +135,13 @@ const baseAppendHistory = appendHistory;
 appendHistory = function appendHistoryWithNotice(entry) {
     baseAppendHistory(entry);
     if (!noticeLevelAll() || NOTICE_OWN_SOURCES.includes(entry.source)) return;
-    const result = String(entry.result || "").replace(/^simulação · /, "");
-    sendPhoneNotice(`${entry.device}: ${entry.action}`, `${entry.source}${result ? ` · ${result}` : ""}`, "house", 2);
+    const origins = {
+        "aplicação": "Pedido na aplicação", "gestão térmica": "Decisão da gestão térmica",
+        "automatização": "Automatização", "horário": "Horário", "controlo automático": "Controlo automático"
+    };
+    const origin = origins[entry.source] || entry.source || "Casa";
+    const reason = String(entry.result || "").replace(/^simulação( · )?/, "");
+    sendPhoneNotice(`${entry.device}: ${entry.action}`, reason ? `${origin}: ${reason}` : `${origin}.`, "house", 2);
 };
 
 // Modo ao vivo: alguém mexeu noutro aparelho que não envia avisos (por exemplo, o telemóvel

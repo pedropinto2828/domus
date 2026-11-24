@@ -698,7 +698,17 @@ function bindInteractiveEvents() {
 function registerOfflineSupport() {
     const local = ["localhost", "127.0.0.1"].includes(window.location.hostname);
     if (!("serviceWorker" in navigator) || !(window.location.protocol === "https:" || local)) return;
-    navigator.serviceWorker.register("sw.js").catch(() => { /* sem suporte nesta origem */ });
+    // Quando há uma versão nova do site, a página passa a usá-la sozinha (sem ter de recarregar)
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (hadController && !reloaded) { reloaded = true; window.location.reload(); }
+    });
+    navigator.serviceWorker.register("sw.js").then((registration) => {
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") registration.update().catch(() => {});
+        });
+    }).catch(() => { /* sem suporte nesta origem */ });
 }
 
 applyTheme(initialTheme());

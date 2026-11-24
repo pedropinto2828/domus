@@ -4,8 +4,10 @@
  * o que se faz num aparelho (ligar a ventoinha, abrir a janela, escolher um
  * cenário, mexer numa barra do simulador, mudar de modo ou de página) acontece
  * também em todos os outros que tenham o site aberto.
- * No computador (localhost) só se liga com ?aovivo no endereço, para não
- * interferir com o uso normal com a ESP32. Para usar o site sozinho: ?sozinho.
+ * Também se liga no computador (Live Server); como só funciona em modo de
+ * demonstração, nunca interfere com a ESP32. Para usar o site sozinho: ?sozinho.
+ * Não é preciso recarregar a página: as mudanças chegam sozinhas e, se o
+ * telemóvel bloquear o ecrã ou perder a rede, a ligação é refeita ao voltar.
  *
  * Só se enviam as AÇÕES das pessoas, com o estado que resultou delas. As regras da
  * casa (chuva, gestão térmica, automatizações) correm em cada aparelho a partir
@@ -23,9 +25,7 @@ const LIVE_SERVER = "https://ntfy.sh/";
 const LIVE_WAIT_MS = 80;           // junta as mudanças de um mesmo clique numa só mensagem
 
 const liveParams = new URLSearchParams(window.location.search);
-const livePublished = /\.github\.io$/.test(window.location.hostname);
-const liveOn = !liveParams.has("sozinho") &&
-    (livePublished || liveParams.has("aovivo") || liveParams.has("apresentar"));
+const liveOn = !liveParams.has("sozinho");
 const liveId = Math.random().toString(36).slice(2, 10);   // identifica este aparelho
 
 let liveSendTimer = 0;
@@ -114,9 +114,13 @@ function applyLiveMessage(text) {
     showLiveBanner("● Ao vivo: ligado aos outros aparelhos", "on");
 }
 
+let liveSource = null;
+
 function startLiveListening() {
-    // since=latest: quem abre o site a meio recebe logo o último estado
+    if (liveSource) liveSource.close();
+    // since=latest: quem abre o site a meio (ou volta a ele) recebe logo o último estado
     const source = new EventSource(`${LIVE_SERVER}${LIVE_TOPIC}/sse?since=latest`);
+    liveSource = source;
     source.onopen = () => showLiveBanner("● Ao vivo: ligado aos outros aparelhos", "on");
     source.onmessage = (event) => {
         try {
@@ -164,4 +168,18 @@ if (liveOn) {
     const resume = document.getElementById("simResume");
     if (resume) resume.addEventListener("click", () => liveAction());
     startLiveListening();
+    // O telemóvel corta a ligação quando o ecrã bloqueia ou o site fica em segundo
+    // plano; ao voltar, liga de novo e recebe o último estado, sem recarregar a página
+    const liveReconnect = () => {
+        if (document.visibilityState === "visible" &&
+            (!liveSource || liveSource.readyState === EventSource.CLOSED || Date.now() - liveLastMessageAt > 30000)) {
+            startLiveListening();
+        }
+    };
+    document.addEventListener("visibilitychange", liveReconnect);
+    window.addEventListener("online", startLiveListening);
+    window.addEventListener("pageshow", (event) => { if (event.persisted) startLiveListening(); });
+    window.setInterval(() => {
+        if (liveSource && liveSource.readyState === EventSource.CLOSED) startLiveListening();
+    }, 5000);
 }

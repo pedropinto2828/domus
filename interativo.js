@@ -123,46 +123,63 @@ function thermalDecision(state) {
             (hot ? " → está calor" : cool ? " → está fresco" : " → dentro do conforto")
     });
 
+    // Como no firmware: diferença de 0,5 °C entre dentro e fora; no simulador
+    // a confirmação de 10 min da luz é ignorada para o efeito se ver logo.
+    const outsideCooler = isFiniteNumber(tOut) && tOut < tIn - THERMAL_HYSTERESIS;
+    const outsideWarmer = isFiniteNumber(tOut) && tOut > tIn + THERMAL_HYSTERESIS;
+    const luxOk = isFiniteNumber(lux);
+    const luxText = luxOk ? `${Math.round(lux)} lx` : "-- lx";
+
     if (season === "summer") {
-        const outsideCooler = isFiniteNumber(tOut) && tOut < tIn;
-        if (hot) {
-            reasons.push({ ok: outsideCooler, text: `Exterior ${temperatureText(tOut)}: ${outsideCooler ? "mais fresco do que dentro" : "mais quente do que dentro"}.` });
-            if (outsideCooler && !rain) {
-                actions.window1 = "open";
-                if (useFan) actions.fan = true;
-                return { active: true, reasons, actions, verdict: `Ventilação natural: abrir a janela${useFan ? " e ligar a ventoinha" : ""}.` };
-            }
-            if (outsideCooler && rain) reasons.push({ ok: false, text: "Está a chover: a janela não pode abrir." });
+        reasons.push({ ok: outsideCooler, text: `Exterior ${temperatureText(tOut)}: ${outsideCooler ? "mais fresco do que dentro" : outsideWarmer ? "mais quente do que dentro" : "quase igual a dentro"}.` });
+        const parts = [];
+        if (hot && outsideCooler && !rain) {
+            actions.window1 = "open";
+            parts.push("abrir a janela (ventilação natural)");
+        } else if (outsideWarmer || cool) {
             actions.window1 = "closed";
-            if (isFiniteNumber(lux) && lux > 600) {
-                actions.window2 = "closed";
-                reasons.push({ ok: true, text: `Sol forte (${Math.round(lux)} lx > 600 lx): descer o estore para fazer sombra.` });
-            }
-            if (useFan) actions.fan = true;
-            return { active: true, reasons, actions, verdict: `Proteger do calor: fechar a janela${actions.window2 ? ", descer o estore" : ""}${useFan ? " e ligar a ventoinha" : ""}.` };
+            parts.push(outsideWarmer ? "fechar a janela (fora está mais quente)" : "fechar a janela (casa já fresca)");
         }
-        if (cool) {
-            actions.fan = false;
-            return { active: true, reasons, actions, verdict: "Já está fresco: desligar a ventoinha." };
+        if (hot && outsideCooler && rain) reasons.push({ ok: false, text: "Está a chover: a janela não pode abrir." });
+        if (hot && luxOk && lux > 600) {
+            actions.window2 = "closed";
+            parts.push("descer o estore");
+            reasons.push({ ok: true, text: `Sol forte (${luxText} > 600 lx): descer o estore para fazer sombra.` });
+        } else if (!hot && luxOk && lux < 400) {
+            actions.window2 = "open";
+            parts.push("subir o estore");
+            reasons.push({ ok: true, text: `Sol fraco (${luxText} < 400 lx): o estore pode subir.` });
         }
-        return { active: true, reasons, actions, verdict: "Temperatura dentro do conforto: nada a mudar." };
+        if (hot && useFan) { actions.fan = true; parts.push("ligar a ventoinha"); }
+        if (cool) { actions.fan = false; parts.push("desligar a ventoinha"); }
+        const verdict = parts.length ? parts[0].charAt(0).toUpperCase() + parts.join(", ").slice(1) + "." : "Temperatura dentro do conforto: nada a mudar.";
+        return { active: true, reasons, actions, verdict };
     }
 
-    // Inverno: ganhos solares
-    if (isFiniteNumber(lux) && lux > 400) {
-        actions.window2 = "open";
-        reasons.push({ ok: true, text: `Sol (${Math.round(lux)} lx > 400 lx): subir o estore para aproveitar o calor.` });
-    } else if (isFiniteNumber(lux) && lux < 50) {
+    // Inverno: o alvo é o limite dos ganhos solares
+    if (luxOk && lux < 50) {
         actions.window2 = "closed";
-        reasons.push({ ok: true, text: `Noite (${Math.round(lux)} lx < 50 lx): descer o estore para isolar.` });
+        reasons.push({ ok: true, text: `Noite (${luxText} < 50 lx): descer o estore para isolar.` });
+    } else if (hot) {
+        actions.window2 = "closed";
+        reasons.push({ ok: true, text: `Acima do alvo: descer o estore para não sobreaquecer.` });
+    } else if (luxOk && lux > 400) {
+        actions.window2 = "open";
+        reasons.push({ ok: true, text: `Sol (${luxText} > 400 lx) e abaixo do alvo: subir o estore para aproveitar o calor.` });
     } else {
-        reasons.push({ ok: true, text: `Luz moderada (${isFiniteNumber(lux) ? Math.round(lux) : "--"} lx): o estore fica como está.` });
+        reasons.push({ ok: true, text: `Luz moderada (${luxText}): o estore fica como está.` });
     }
-    actions.window1 = "closed";
+    if (hot && outsideCooler && !rain) {
+        actions.window1 = "open";
+        reasons.push({ ok: true, text: "Sobreaquecimento e fora mais fresco: abrir a janela para arejar." });
+    } else if (!hot) {
+        actions.window1 = "closed";
+    }
     actions.fan = false;
     return {
         active: true, reasons, actions,
-        verdict: actions.window2 === "open" ? "Ganhos solares: estore em cima, janela fechada."
+        verdict: actions.window1 === "open" ? "Arejar: estore em baixo e janela aberta."
+            : actions.window2 === "open" ? "Ganhos solares: estore em cima, janela fechada."
             : actions.window2 === "closed" ? "Isolar a casa: estore em baixo, janela fechada."
                 : "Guardar o calor: janela fechada e ventoinha desligada."
     };

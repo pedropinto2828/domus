@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#10233f">
-    <meta property="og:title" content="DOMUS+ — Casa Inteligente">
-    <meta property="og:description" content="Casa inteligente com ESP32, gestão térmica sazonal, simulador e Vista 3D. PAP de Pedro Pinto.">
-    <meta property="og:type" content="website">
     <meta name="description" content="DOMUS+ — casa inteligente com ESP32: controlo, gestão térmica sazonal, simulador e Vista 3D. PAP de Pedro Pinto, Profitecla 2026/2027.">
     <title>DOMUS+ | Casa Inteligente</title>
     <link rel="manifest" href="manifest.webmanifest">
@@ -767,7 +764,7 @@
             </section>
             <section class="settings-section">
                 <h3>Ligação e estado do sistema</h3>
-                <label class="connection-field">Endereço API da ESP32<input type="url" id="esp32Url" placeholder="http://192.168.1.50" autocomplete="url"></label>
+                <label class="connection-field">Endereço API da ESP32<input type="url" id="esp32Url" placeholder="http://domus.local" autocomplete="url"></label>
                 <label class="connection-field">Token API<input type="password" id="esp32Token" autocomplete="off"></label>
                 <div class="connection-actions">
                     <button class="save-settings" id="connectEsp32" type="button">Guardar e ligar</button>
@@ -870,5 +867,6 @@
     </main>
     <script src="app.js"></script>
     <script src="interativo.js"></script>
+    <script src="aovivo.js"></script>
 </body>
 </html>

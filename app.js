@@ -2382,7 +2382,7 @@ async function connectToEsp32() {
     try {
         parsedUrl = new URL(inputUrl);
     } catch (error) {
-        showToast("Indica um endereço válido, por exemplo http://192.168.1.50.");
+        showToast("Indica um endereço válido, por exemplo http://domus.local ou o IP mostrado no Monitor Série.");
         return;
     }
     if (!["http:", "https:"].includes(parsedUrl.protocol) ||

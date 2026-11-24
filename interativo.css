@@ -515,3 +515,11 @@ html[data-theme="dark"] .command-help { border-color: #2a3d5c; }
 @media (max-width: 400px) {
     .connection-pill span { display: none; }
 }
+
+/* ---------- simulação ao vivo (aovivo.js) ---------- */
+.live-banner{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;
+  max-width:calc(100% - 32px);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;
+  box-shadow:0 6px 20px rgba(18,22,29,.18);background:#12161D;color:#fff;text-align:center}
+.live-banner.on{background:#1f7a4d}
+.live-banner.off{background:#a33a2a}
+.live-banner.wait{background:#4a5568}

@@ -38,7 +38,7 @@ const liveSeenIds = new Set();  // mensagens j√° aplicadas (ao religar, o servi√
 // Campos do estado que todos os aparelhos partilham
 const LIVE_STATE_FIELDS = ["temperatureC", "temperatureOutC", "humidityPercent", "luminosityLux",
     "rainDetected", "motionDetected", "windows", "lights", "season", "targetTemp", "fanOn",
-    "faucetOn", "faucetRemainingSeconds", "activeMode"];
+    "faucetOn", "faucetRemainingSeconds", "activeMode", "forecast"];
 
 function currentPageName() {
     const active = document.querySelector("[data-page-view].active");

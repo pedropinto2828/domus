@@ -13,6 +13,10 @@
 const THERMAL_HYSTERESIS = 0.5;        // °C, igual ao firmware
 const THERMAL_PAUSE_DEMO_MS = 600000;  // ordem manual pausa a gestão térmica 10 min
 const SIM_TICK_MS = 2500;              // a ESP32 avalia a gestão térmica a cada 2,5 s
+const RAIN_FORECAST_PERCENT = 70;      // vai chover: >= 70 % na próxima hora (igual ao firmware)
+const HEAT_FORECAST_MARGIN = 5;        // vem calor: alvo + 5 °C nas próximas 3 h
+const WEATHER_MAX_AGE_MS = 7200000;    // previsão com mais de 2 h é ignorada
+const AWAY_NOTICE_GAP_MS = 600000;     // no máximo 1 aviso de movimento a cada 10 min
 
 let simPauseUntil = 0;
 let simRainLatched = false;
@@ -21,6 +25,8 @@ let simFaucetOnSince = 0;
 let simAutomationLatch = {};
 let simLog = [];
 let simApplying = false;
+let simLastMotionState = false;
+let simLastAwayNotice = 0;
 
 const SEASON_NAMES = { summer: "Verão", winter: "Inverno", off: "Desligada" };
 
@@ -49,6 +55,18 @@ const SCENARIOS = {
         label: "Chegada à noite",
         lux: 20, rain: false, motion: true,
         before: (state) => { state.lights = state.lights.map(() => false); }
+    },
+    rainSoon: {
+        label: "Vai chover",
+        season: "summer", target: 25, tempIn: 27, tempOut: 22, lux: 500, rain: false, motion: false,
+        forecast: { rainProbability: 85, tempMaxC: 21 },
+        before: (state) => { state.windows[0] = "open"; }
+    },
+    heatSoon: {
+        label: "Vem calor",
+        season: "summer", target: 25, tempIn: 25, tempOut: 24, lux: 500, rain: false, motion: false,
+        forecast: { rainProbability: 0, tempMaxC: 33 },
+        before: (state) => { state.windows[1] = "open"; }
     }
 };
 
@@ -80,6 +98,27 @@ function pushSimLog(text) {
 }
 
 /* ---------- lógica de decisão (igual ao firmware) ---------- */
+
+// Previsão em uso: a da ESP32 (ageMinutes) ou a do site (at); ignora se tiver mais de 2 h
+function forecastOf(state) {
+    const forecast = state && state.forecast;
+    if (!forecast || typeof forecast !== "object") return null;
+    if (isFiniteNumber(forecast.ageMinutes) && forecast.ageMinutes * 60000 > WEATHER_MAX_AGE_MS) return null;
+    if (isFiniteNumber(forecast.at) && Date.now() - forecast.at > WEATHER_MAX_AGE_MS) return null;
+    return forecast;
+}
+
+// Vai chover em breve? (>= 70 % nesta hora ou na seguinte)
+function rainSoon(state) {
+    const forecast = forecastOf(state);
+    return Boolean(forecast) && Number(forecast.rainProbability) >= RAIN_FORECAST_PERCENT;
+}
+
+// Vem muito calor? (máxima das próximas 3 h >= alvo + 5 °C)
+function heatSoon(state, target) {
+    const forecast = forecastOf(state);
+    return Boolean(forecast) && isFiniteNumber(forecast.tempMaxC) && forecast.tempMaxC >= target + HEAT_FORECAST_MARGIN;
+}
 
 // Devolve o que a gestão térmica faria com o estado indicado e a explicação de cada passo.
 function thermalDecision(state) {
@@ -129,11 +168,19 @@ function thermalDecision(state) {
     const outsideWarmer = isFiniteNumber(tOut) && tOut > tIn + THERMAL_HYSTERESIS;
     const luxOk = isFiniteNumber(lux);
     const luxText = luxOk ? `${Math.round(lux)} lx` : "-- lx";
+    const forecast = forecastOf(state);
+    const rainComing = rainSoon(state);
+    const heatComing = season === "summer" && luxOk && lux > 50 && heatSoon(state, target);
+    if (rainComing) reasons.push({ ok: true, text: `Previsão: ${forecast.rainProbability} % de chuva na próxima hora → a janela fecha antes e não abre.` });
+    if (heatComing) reasons.push({ ok: true, text: `Previsão: máxima de ${numberText(forecast.tempMaxC)} °C nas próximas 3 h → o estore desce antes.` });
 
     if (season === "summer") {
         reasons.push({ ok: outsideCooler, text: `Exterior ${temperatureText(tOut)}: ${outsideCooler ? "mais fresco do que dentro" : outsideWarmer ? "mais quente do que dentro" : "quase igual a dentro"}.` });
         const parts = [];
-        if (hot && outsideCooler && !rain) {
+        if (rainComing) {
+            actions.window1 = "closed";
+            parts.push("fechar a janela (vai chover)");
+        } else if (hot && outsideCooler && !rain) {
             actions.window1 = "open";
             parts.push("abrir a janela (ventilação natural)");
         } else if (outsideWarmer || cool) {
@@ -141,7 +188,10 @@ function thermalDecision(state) {
             parts.push(outsideWarmer ? "fechar a janela (fora está mais quente)" : "fechar a janela (casa já fresca)");
         }
         if (hot && outsideCooler && rain) reasons.push({ ok: false, text: "Está a chover: a janela não pode abrir." });
-        if (hot && luxOk && lux > 600) {
+        if (heatComing) {
+            actions.window2 = "closed";
+            parts.push("descer o estore (vem calor)");
+        } else if (hot && luxOk && lux > 600) {
             actions.window2 = "closed";
             parts.push("descer o estore");
             reasons.push({ ok: true, text: `Sol forte (${luxText} > 600 lx): descer o estore para fazer sombra.` });
@@ -169,10 +219,10 @@ function thermalDecision(state) {
     } else {
         reasons.push({ ok: true, text: `Luz moderada (${luxText}): o estore fica como está.` });
     }
-    if (hot && outsideCooler && !rain) {
+    if (hot && outsideCooler && !rain && !rainComing) {
         actions.window1 = "open";
         reasons.push({ ok: true, text: "Sobreaquecimento e fora mais fresco: abrir a janela para arejar." });
-    } else if (!hot) {
+    } else if (!hot || rainComing) {
         actions.window1 = "closed";
     }
     actions.fan = false;
@@ -243,8 +293,10 @@ function runSimulation() {
     if (s.rainDetected) {
         if (!simRainLatched) {
             simRainLatched = true;
+            const wasOpen = s.windows[0] !== "closed";
             simApply("window1", false, "segurança", "chuva detetada");
             addNotification({ title: "Chuva detetada", message: "A janela foi fechada automaticamente (simulação).", severity: "warning" });
+            sendPhoneNotice("Começou a chover", wasOpen ? "A janela foi fechada automaticamente." : "A janela já estava fechada.", "cloud_with_rain", 4);
         }
     } else {
         simRainLatched = false;
@@ -282,7 +334,32 @@ function runSimulation() {
         else if (s.temperatureC <= Number(houseSettings.fanOffTemp)) simApply("fan", false, "controlo automático", "abaixo do limite");
     }
 
-    // 4. Gestão térmica sazonal
+    // 4. Previsão do tempo: preparar a casa antes (modos Automático e ECO, sem ordem manual recente)
+    if ((mode === "auto" || mode === "eco") && simPauseUntil <= Date.now()) {
+        const forecast = forecastOf(s);
+        const target = isFiniteNumber(s.targetTemp) ? s.targetTemp : Number(houseSettings.targetTemp) || 25;
+        const season = s.season || houseSettings.season || "off";
+        if (rainSoon(s) && s.windows[0] === "open" &&
+            simApply("window1", false, "previsão do tempo", `${forecast.rainProbability} % de chuva na próxima hora`)) {
+            sendPhoneNotice("Vai chover", `Previsão de ${forecast.rainProbability} % de chuva na próxima hora: fechei a janela antes.`, "umbrella", 3);
+        }
+        if (season === "summer" && isFiniteNumber(s.luminosityLux) && s.luminosityLux > 50 && heatSoon(s, target) &&
+            s.windows[1] !== "closed" &&
+            simApply("window2", false, "previsão do tempo", `máxima de ${numberText(forecast.tempMaxC)} °C nas próximas 3 h`)) {
+            sendPhoneNotice("Vem calor", `Previsão de ${Math.round(forecast.tempMaxC)} °C: desci o estore para a casa não aquecer.`, "sunny", 3);
+        }
+    }
+
+    // 5. Movimento com a casa em modo Ausente: aviso no telemóvel
+    if (mode === "away" && s.motionDetected && !simLastMotionState &&
+        (!simLastAwayNotice || Date.now() - simLastAwayNotice >= AWAY_NOTICE_GAP_MS)) {
+        simLastAwayNotice = Date.now();
+        addNotification({ title: "Movimento em casa", message: "Foi detetado movimento com a casa em modo Ausente (simulação).", severity: "warning" });
+        sendPhoneNotice("Movimento em casa", "Foi detetado movimento com a casa em modo Ausente.", "warning", 5);
+    }
+    simLastMotionState = s.motionDetected === true;
+
+    // 6. Gestão térmica sazonal
     const decision = thermalDecision(s);
     if (decision.active) {
         const why = decision.verdict.replace(/:.*$/, "").toLowerCase();
@@ -411,6 +488,10 @@ async function applyScenario(key) {
     });
     demoState.rainDetected = scenario.rain === true;
     demoState.motionDetected = scenario.motion === true;
+    // Cenários de previsão usam uma previsão simulada; os outros voltam à previsão real
+    demoState.forecast = scenario.forecast
+        ? { ...scenario.forecast, city: "simulação", simulated: true, at: Date.now() }
+        : (typeof realForecast !== "undefined" && realForecast ? { ...realForecast } : null);
     pushSimLog(`Cenário: ${scenario.label}`);
     document.querySelectorAll(".scenario-chip").forEach((chip) => chip.classList.toggle("active", chip.dataset.scenario === key));
     runSimulation();

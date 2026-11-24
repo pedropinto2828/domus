@@ -523,3 +523,8 @@ html[data-theme="dark"] .command-help { border-color: #2a3d5c; }
 .live-banner.on{background:#1f7a4d}
 .live-banner.off{background:#a33a2a}
 .live-banner.wait{background:#4a5568}
+
+/* Previsão do tempo no Início */
+.hero-forecast { font-size: 13px; color: #dbe9f8; margin-top: 6px; }
+.hero-forecast.rain { color: #ffd38a; font-weight: 600; }
+.weather-coords { display: block; font-size: 15px; padding: 10px 0; }

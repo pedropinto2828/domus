@@ -91,7 +91,9 @@ const DEFAULT_SETTINGS = {
     season: "summer",
     targetTemp: 25,
     temperatureOffsetC: 0,
-    autoDevices: { light1: false, fan: false }
+    autoDevices: { light1: false, fan: false },
+    weather: { city: "Vizela", lat: 41.38, lon: -8.31 },   // previsão do tempo (Open-Meteo)
+    ntfyTopic: ""                                           // avisos no telemóvel (app ntfy)
 };
 
 const MODE_NAMES = {
@@ -263,7 +265,8 @@ function loadSavedPreferences() {
                     ...DEFAULT_SETTINGS,
                     ...parsedSettings,
                     devices: { ...DEFAULT_SETTINGS.devices, ...parsedSettings.devices },
-                    autoDevices: { ...DEFAULT_SETTINGS.autoDevices, ...parsedSettings.autoDevices }
+                    autoDevices: { ...DEFAULT_SETTINGS.autoDevices, ...parsedSettings.autoDevices },
+                    weather: { ...DEFAULT_SETTINGS.weather, ...parsedSettings.weather }
                 };
             }
         }
@@ -1312,7 +1315,13 @@ async function saveHouseSettings() {
         faucetSeconds: Number($("settingFaucetSeconds").value),
         season: $("settingSeason").value,
         targetTemp: Number($("settingTargetTemp").value),
-        autoDevices: { ...houseSettings.autoDevices }
+        autoDevices: { ...houseSettings.autoDevices },
+        weather: {
+            city: $("settingWeatherCity").value.trim() || DEFAULT_SETTINGS.weather.city,
+            lat: Number($("settingWeatherCoords").dataset.lat),
+            lon: Number($("settingWeatherCoords").dataset.lon)
+        },
+        ntfyTopic: $("settingNtfyTopic").value.trim()
     };
     if (Object.values(textSettings.devices).some((value) => !value) ||
         !textSettings.homeName || !textSettings.roomName ||
@@ -1331,6 +1340,16 @@ async function saveHouseSettings() {
         !Number.isInteger(textSettings.faucetSeconds) ||
         textSettings.faucetSeconds < 1 || textSettings.faucetSeconds > 60) {
         showToast("Revê os nomes e limites. A temperatura de desligar deve ser inferior à de ligar.");
+        return false;
+    }
+    if (textSettings.weather.city.length > 40 ||
+        !Number.isFinite(textSettings.weather.lat) || Math.abs(textSettings.weather.lat) > 90 ||
+        !Number.isFinite(textSettings.weather.lon) || Math.abs(textSettings.weather.lon) > 180) {
+        showToast("Revê a cidade da previsão do tempo (carrega em Procurar cidade).");
+        return false;
+    }
+    if (!/^[A-Za-z0-9_-]{0,64}$/.test(textSettings.ntfyTopic)) {
+        showToast("O tópico dos avisos só pode ter letras, números, - e _ (até 64).");
         return false;
     }
 
@@ -3673,6 +3692,9 @@ async function init() {
                     source: "temporizador",
                     result: "simulação"
                 });
+                if (typeof sendPhoneNotice === "function") {
+                    sendPhoneNotice("Torneira fechada", "A torneira fechou-se sozinha ao fim do tempo definido.", "droplet", 2);
+                }
             }
             renderState(demoState);
         }

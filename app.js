@@ -3119,10 +3119,12 @@ function validateConfigurationBackup(backup) {
 }
 
 function currentConfigurationBackup() {
+    const settings = JSON.parse(JSON.stringify(houseSettings));
+    settings.telegramToken = "";   // o código do bot é secreto: nunca vai para o ficheiro
     return {
         schemaVersion: 1,
         exportedAt: new Date().toISOString(),
-        settings: JSON.parse(JSON.stringify(houseSettings)),
+        settings,
         profiles: JSON.parse(JSON.stringify(modeProfiles)),
         schedules: JSON.parse(JSON.stringify(schedules)),
         automations: JSON.parse(JSON.stringify(automations)),
@@ -3140,7 +3142,7 @@ function exportConfiguration() {
     link.download = `domus-configuracao-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    showToast("Cópia de segurança exportada. O token/API não foi incluído.");
+    showToast("Cópia de segurança exportada. O token da API e o código do bot não foram incluídos.");
 }
 
 async function importConfiguration(event) {
@@ -3182,6 +3184,8 @@ async function importConfiguration(event) {
             throw new Error(`Não foi possível repor a cópia local: ${failures.join("; ")}`);
         }
     };
+    // A cópia não traz o código do bot: mantém-se o que estava neste aparelho
+    if (!imported.settings.telegramToken) imported.settings.telegramToken = houseSettings.telegramToken || "";
     try {
         localStorage.setItem("domus-settings", JSON.stringify(imported.settings));
         localStorage.setItem("domus-profiles", JSON.stringify(imported.profiles));

@@ -1,7 +1,7 @@
 /* DOMUS+ — service worker: abre o site mesmo sem ligação (rede primeiro, cópia local como alternativa).
    Os pedidos à API da ESP32 nunca são guardados em cache. */
-const CACHE = "domus-v15";
-const SHELL = ["./", "index.html", "style.css", "interativo.css", "app.js", "interativo.js?v=15", "previsao.js?v=15", "aovivo.js?v=15", "icon.svg", "manifest.webmanifest"];
+const CACHE = "domus-v16";
+const SHELL = ["./", "index.html", "style.css", "interativo.css", "app.js", "interativo.js?v=16", "previsao.js?v=16", "energia.js?v=16", "comandos.js?v=16", "aovivo.js?v=16", "icon.svg", "manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

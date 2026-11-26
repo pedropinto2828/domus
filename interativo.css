@@ -531,3 +531,43 @@ html[data-theme="dark"] .command-help { border-color: #2a3d5c; }
 .settings-help + h3 { margin-top: 22px; }
 .notice-status { margin: 10px 0 4px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #fdf1e4; color: #a84e15; }
 .notice-status.ok { background: #e6f3ea; color: #1f6b3a; }
+
+/* ---------- separadores das páginas agrupadas (Automático, Energia, Histórico, Definições) ---------- */
+.page-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 5px; border-radius: 14px; background: #eef2f7; width: fit-content; max-width: 100%; }
+.page-tab { border: 0; background: transparent; padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 15px; color: var(--ink-soft); cursor: pointer; }
+.page-tab:hover { color: var(--ink); }
+.page-tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(23, 45, 72, .12); }
+.page-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 520px) { .page-tabs { width: 100%; } .page-tab { flex: 1 1 auto; padding: 9px 10px; font-size: 14px; } }
+
+/* Mapa da casa dentro do Início */
+#homePage > #floorPlanSection { margin-top: 18px; }
+
+/* ---------- Energia ---------- */
+.energy-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0 12px; }
+.energy-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 15px; background: #f1f4f8; }
+.energy-card strong { font-size: 26px; line-height: 1.1; color: var(--ink); }
+.energy-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+.energy-detail { font-size: 13px; color: var(--ink-soft); }
+.energy-tip { margin: 4px 0 16px; padding: 10px 14px; border-radius: 10px; background: #fff7e8; color: #8a4b12; font-weight: 600; font-size: 14px; }
+.energy-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+.energy-panel { padding: 16px; border: 1px solid var(--line); border-radius: 15px; }
+.energy-panel h3 { font-size: 16px; margin-bottom: 12px; }
+.energy-list { list-style: none; display: grid; gap: 10px; }
+.energy-row { display: grid; grid-template-columns: 9.5em 1fr 5.5em; align-items: center; gap: 10px; font-size: 14px; }
+.energy-row .energy-bar { height: 10px; border-radius: 99px; background: #e8edf3; overflow: hidden; }
+.energy-row .energy-bar span { display: block; height: 100%; border-radius: 99px; background: var(--warm); }
+.energy-row .energy-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.energy-week { display: flex; align-items: flex-end; gap: 8px; height: 170px; padding-top: 18px; }
+.energy-day { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; font-size: 12px; color: var(--ink-soft); }
+.energy-day .energy-column { width: 100%; max-width: 34px; min-height: 2px; border-radius: 6px 6px 2px 2px; background: var(--cool); }
+.energy-day.today .energy-column { background: var(--warm); }
+.energy-day .energy-amount { font-variant-numeric: tabular-nums; }
+.energy-how { margin-top: 16px; font-size: 14px; color: var(--ink-soft); }
+.energy-how summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.energy-how p { margin-top: 8px; line-height: 1.5; }
+@media (max-width: 900px) { .energy-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .energy-grid { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .energy-row { grid-template-columns: 7em 1fr 4.6em; font-size: 13px; } .energy-card strong { font-size: 22px; } }
+
+.settings-check { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; font-size: 15px; }
+.settings-check input { width: 18px; height: 18px; }

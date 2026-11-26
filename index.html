@@ -25,17 +25,12 @@
             <p class="sidebar-label">MENU PRINCIPAL</p>
             <nav class="portal-nav" aria-label="Páginas da aplicação">
                 <button class="nav-item active" data-page="home" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Início</span></button>
-                <button class="nav-item" data-page="plant" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg><span>Planta da Casa</span></button>
                 <button class="nav-item" data-page="live3d" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4m-9 4v10"/></svg><span>Vista 3D ao Vivo</span></button>
                 <button class="nav-item" data-page="equipment" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4m0 16h16M8 16l3-4 3 2 4-6"/></svg><span>Equipamentos</span></button>
-                <button class="nav-item" data-page="automations" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M4.2 7.2l2.1 2.1m11.4 5.4 2.1 2.1M3 12h3m12 0h3M4.2 16.8l2.1-2.1m11.4-5.4 2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg><span>Automatizações</span></button>
-                <button class="nav-item" data-page="schedules" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horários</span></button>
-                <button class="nav-item" data-page="statistics" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span>Estatísticas</span></button>
-                <button class="nav-item" data-page="alerts" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Alertas</span><span class="nav-count" id="sidebarAlertCount" hidden>0</span></button>
-                <button class="nav-item" data-page="history" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5m4-1v5l3 2"/></svg><span>Histórico</span></button>
-                <button class="nav-item" data-page="diagnostics" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8.3 8 10 4.6-1.7 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Diagnóstico</span></button>
+                <button class="nav-item" data-page="automations" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M4.2 7.2l2.1 2.1m11.4 5.4 2.1 2.1M3 12h3m12 0h3M4.2 16.8l2.1-2.1m11.4-5.4 2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg><span>Automático</span></button>
+                <button class="nav-item" data-page="energy" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Energia</span></button>
+                <button class="nav-item" data-page="history" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5m4-1v5l3 2"/></svg><span>Histórico e alertas</span><span class="nav-count" id="sidebarAlertCount" hidden>0</span></button>
                 <button class="nav-item" id="navSettings" data-page="settings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.9h-3l-.3-1.9a8 8 0 0 1-1.7-1l-1.7.7-1.5-2.6 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.5-2.6 1.7.7a8 8 0 0 1 1.7-1l.3-1.9h3l.3 1.9a8 8 0 0 1 1.7 1l1.7-.7 1.5 2.6-1.4 1.1a7 7 0 0 1 0 2Z"/></svg><span>Definições</span></button>
-                <button class="nav-item" data-page="about" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Sobre o projeto</span></button>
             </nav>
             <div class="sidebar-footer"><span class="sidebar-status-dot"></span><span id="sidebarConnectionStatus">Demonstração</span></div>
         </aside>
@@ -186,12 +181,9 @@
                 <ul class="home-preview-list" id="homeRecentAlerts"></ul>
             </section>
         </div>
-        </div>
-
-        <div class="page-view" id="plantPage" data-page-view="plant" aria-hidden="true">
         <section class="section-block" id="floorPlanSection">
             <div class="section-heading">
-                <div><p class="eyebrow">MAPA INTERATIVO</p><h2>Planta da Casa</h2></div>
+                <div><p class="eyebrow">MAPA INTERATIVO</p><h2>Mapa da casa</h2></div>
                 <span class="section-note" id="floorPlanConnection">A aguardar estado</span>
             </div>
             <p class="section-description">Seleciona uma divisão para ver os equipamentos associados. Os estados são os recebidos da ESP32 ou estão identificados como demonstração.</p>
@@ -452,13 +444,44 @@
         </section>
         </div>
 
+        <div class="page-view" id="energyPage" data-page-view="energy" aria-hidden="true">
+        <section class="section-block" id="energySection">
+            <div class="section-heading">
+                <div><p class="eyebrow">CONSUMO ESTIMADO</p><h2>Energia</h2></div>
+                <span class="section-note" id="energySource">Estimativa</span>
+            </div>
+            <p class="section-description">Estimativa: a casa conta quanto tempo cada equipamento esteve ligado e multiplica pela potência de um equipamento igual numa casa a sério. Não é uma medição com sensor.</p>
+            <div class="energy-cards">
+                <article class="energy-card"><span class="energy-label">Hoje</span><strong id="energyTodayKwh">--</strong><span class="energy-detail" id="energyTodayWh">--</span></article>
+                <article class="energy-card"><span class="energy-label">Custo hoje</span><strong id="energyTodayCost">--</strong><span class="energy-detail" id="energyPriceText">--</span></article>
+                <article class="energy-card"><span class="energy-label">Água hoje</span><strong id="energyTodayWater">--</strong><span class="energy-detail">pela torneira</span></article>
+                <article class="energy-card"><span class="energy-label">Últimos 7 dias</span><strong id="energyWeekKwh">--</strong><span class="energy-detail" id="energyWeekCost">--</span></article>
+            </div>
+            <p class="energy-tip" id="energyTip">A calcular…</p>
+            <div class="energy-grid">
+                <div class="energy-panel">
+                    <h3>O que gastou hoje</h3>
+                    <ul class="energy-list" id="energyDeviceList"></ul>
+                </div>
+                <div class="energy-panel">
+                    <h3>Últimos 7 dias</h3>
+                    <div class="energy-week" id="energyWeek" role="img" aria-label="Energia por dia nos últimos 7 dias"></div>
+                </div>
+            </div>
+            <details class="energy-how">
+                <summary>Como é calculado</summary>
+                <p>Potências usadas: cada luz LED 8 W · ventoinha 45 W · motor da janela ou do estore 60 W durante 15 s por movimento · bomba da torneira 30 W · sistema DOMUS+ (ESP32 e sensores) 1 W sempre ligado. Água: 6 litros por minuto com a torneira aberta. O preço da eletricidade muda-se em Definições.</p>
+            </details>
+        </section>
+        </div>
+
         <div class="page-view" id="statisticsPage" data-page-view="statistics" aria-hidden="true">
         <section class="section-block" id="statisticsSection">
             <div class="section-heading">
                 <div><p class="eyebrow">DADOS REGISTADOS</p><h2>Estatísticas</h2></div>
                 <span class="section-note" id="statisticsDataSource">Sem amostras</span>
             </div>
-            <p class="section-description">Gráficos baseados nos registos de sensores guardados com data e hora. Dados de demonstração são identificados; não são estimados consumos.</p>
+            <p class="section-description">Gráficos baseados nos registos de sensores guardados com data e hora. Dados de demonstração são identificados. O consumo de energia estimado está no separador Energia.</p>
             <div class="statistics-controls">
                 <label>Período
                     <select id="statisticsPeriod">
@@ -779,6 +802,14 @@
                 </div>
                 <p class="notice-status" id="noticeStatus" role="status">Avisos desligados: cola o código do bot e carrega em Ligar ao meu Telegram.</p>
                 <p class="settings-help">1. No Telegram, abre o <strong>@BotFather</strong>, escreve <strong>/newbot</strong> e escolhe um nome para o bot. 2. Copia o código que ele te dá e cola-o aqui. 3. Abre o teu bot no Telegram e carrega em <strong>Iniciar</strong>. 4. Volta aqui, carrega em <strong>Ligar ao meu Telegram</strong> e depois em <strong>Enviar aviso de teste</strong>. Com <strong>Só o importante</strong>, a casa avisa quando começa a chover, quando se prepara para chuva ou calor, quando a torneira fecha sozinha, quando há movimento no modo Ausente e quando um sensor deixa de responder. Com <strong>Tudo</strong>, avisa também de cada ação. Não partilhes o código do bot.</p>
+                <h3>Falar com a casa</h3>
+                <label class="settings-check"><input id="settingTelegramCommands" type="checkbox" checked> Aceitar ordens escritas ao bot do Telegram (só da conversa ligada acima)</label>
+                <p class="settings-help">Escreve ao teu bot, por exemplo: <strong>abrir janela 1</strong>, <strong>fechar janela 2</strong> (o estore), <strong>liga a luz da sala</strong>, <strong>apaga as luzes todas</strong>, <strong>liga a ventoinha</strong>, <strong>abre a torneira</strong>, <strong>modo noite</strong> ou <strong>estado</strong>. A casa obedece e responde. Escreve <strong>ajuda</strong> para ver todas as frases. Em demonstração, o site tem de estar aberto neste aparelho; com a casa ligada, é a ESP32 que lê as mensagens (de 10 em 10 segundos). Com a casa ligada, também se pode falar com a Siri através de um Atalho do iPhone (ver o manual).</p>
+                <h3>Energia</h3>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Preço da eletricidade (€/kWh)<input id="settingEnergyPrice" type="number" min="0.01" max="1" step="0.01" inputmode="decimal"></label>
+                </div>
+                <p class="settings-help">Usado para calcular o custo na página Energia. O consumo é uma estimativa feita a partir do tempo em que cada equipamento esteve ligado.</p>
             </section>
             <section class="settings-section">
                 <h3>Modos de funcionamento</h3>
@@ -890,8 +921,10 @@
     </div>
     </main>
     <script src="app.js"></script>
-    <script src="interativo.js?v=15"></script>
-    <script src="previsao.js?v=15"></script>
-    <script src="aovivo.js?v=15"></script>
+    <script src="interativo.js?v=16"></script>
+    <script src="previsao.js?v=16"></script>
+    <script src="energia.js?v=16"></script>
+    <script src="comandos.js?v=16"></script>
+    <script src="aovivo.js?v=16"></script>
 </body>
 </html>

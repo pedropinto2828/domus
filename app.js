@@ -95,7 +95,9 @@ const DEFAULT_SETTINGS = {
     weather: { city: "Vizela", lat: 41.38, lon: -8.31 },   // previsão do tempo (Open-Meteo)
     telegramToken: "",                                      // avisos no telemóvel: código do bot do Telegram
     telegramChatId: "",                                     // e a conversa para onde os enviar
-    noticeLevel: "all"                                      // "all" = tudo; "important" = só o importante
+    noticeLevel: "all",                                     // "all" = tudo; "important" = só o importante
+    telegramCommands: true,                                 // aceitar ordens escritas ao bot (só da conversa ligada)
+    energyPrice: 0.16                                       // preço da eletricidade (€/kWh) para a página Energia
 };
 
 const MODE_NAMES = {
@@ -1281,6 +1283,8 @@ function renderHouseSettings() {
     $("fanName").textContent = houseSettings.devices.fan;
     $("faucetName").textContent = houseSettings.devices.faucet;
     $("faucetDuration").value = houseSettings.faucetSeconds;
+    $("settingTelegramCommands").checked = houseSettings.telegramCommands !== false;
+    $("settingEnergyPrice").value = Number.isFinite(houseSettings.energyPrice) ? houseSettings.energyPrice : 0.16;
     document.querySelectorAll("[data-auto-device]").forEach((button) => {
         const enabled = houseSettings.autoDevices[button.dataset.autoDevice] === true;
         button.setAttribute("aria-pressed", String(enabled));
@@ -1325,7 +1329,9 @@ async function saveHouseSettings() {
         },
         telegramToken: $("settingTelegramToken").value.trim(),
         telegramChatId: $("settingTelegramChat").value.trim(),
-        noticeLevel: $("settingNoticeLevel").value === "important" ? "important" : "all"
+        noticeLevel: $("settingNoticeLevel").value === "important" ? "important" : "all",
+        telegramCommands: $("settingTelegramCommands").checked,
+        energyPrice: Number($("settingEnergyPrice").value)
     };
     if (Object.values(textSettings.devices).some((value) => !value) ||
         !textSettings.homeName || !textSettings.roomName ||
@@ -1355,6 +1361,10 @@ async function saveHouseSettings() {
     if ((textSettings.telegramToken && !/^\d{5,15}:[A-Za-z0-9_-]{20,60}$/.test(textSettings.telegramToken)) ||
         (textSettings.telegramChatId && !/^-?\d{1,19}$/.test(textSettings.telegramChatId))) {
         showToast("Revê o código do bot e a conversa do Telegram (carrega em Ligar ao meu Telegram).");
+        return false;
+    }
+    if (!Number.isFinite(textSettings.energyPrice) || textSettings.energyPrice < 0.01 || textSettings.energyPrice > 1) {
+        showToast("O preço da eletricidade tem de estar entre 0,01 e 1 €/kWh.");
         return false;
     }
 
@@ -3337,16 +3347,66 @@ function closeSettings() {
     navigateToPage("home");
 }
 
+// O menu tem 7 entradas. Algumas juntam várias páginas, mostradas em separadores
+// no topo (por exemplo, Automático = Automatizações + Horários).
+// Os nomes antigos das páginas continuam a funcionar (#horarios, botões "Ver todos"…).
+const PAGE_GROUPS = [
+    { nav: "automations", tabs: [["automations", "Automatizações"], ["schedules", "Horários"]] },
+    { nav: "energy", tabs: [["energy", "Energia"], ["statistics", "Estatísticas"]] },
+    { nav: "history", tabs: [["history", "Histórico"], ["alerts", "Alertas"]] },
+    { nav: "settings", tabs: [["settings", "Definições"], ["diagnostics", "Diagnóstico"], ["about", "Sobre o projeto"]] }
+];
+// Páginas que passaram a ser uma secção de outra
+const PAGE_ALIASES = { plant: { page: "home", section: "floorPlanSection" } };
+
+function pageGroupOf(pageName) {
+    return PAGE_GROUPS.find((group) => group.tabs.some(([page]) => page === pageName));
+}
+
+function buildPageTabs() {
+    PAGE_GROUPS.forEach((group) => {
+        group.tabs.forEach(([pageName]) => {
+            const view = document.querySelector(`[data-page-view="${pageName}"]`);
+            if (!view || view.querySelector(":scope > .page-tabs")) return;
+            const bar = document.createElement("nav");
+            bar.className = "page-tabs";
+            bar.setAttribute("aria-label", "Separadores desta página");
+            group.tabs.forEach(([tabPage, label]) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "page-tab" + (tabPage === pageName ? " active" : "");
+                button.dataset.tabPage = tabPage;
+                button.textContent = label;
+                if (tabPage === pageName) button.setAttribute("aria-current", "page");
+                button.addEventListener("click", () => navigateToPage(tabPage));
+                bar.append(button);
+            });
+            view.prepend(bar);
+        });
+    });
+}
+
 function navigateToPage(pageName, { updateHistory = true } = {}) {
+    const alias = PAGE_ALIASES[pageName];
+    if (alias) {
+        navigateToPage(alias.page, { updateHistory });
+        window.setTimeout(() => {
+            const section = $(alias.section);
+            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 60);
+        return;
+    }
     const page = document.querySelector(`[data-page-view="${pageName}"]`);
     if (!page) return;
+    const group = pageGroupOf(pageName);
+    const navPage = group ? group.nav : pageName;
     document.querySelectorAll("[data-page-view]").forEach((view) => {
         const active = view === page;
         view.classList.toggle("active", active);
         view.setAttribute("aria-hidden", String(!active));
     });
     document.querySelectorAll(".nav-item[data-page]").forEach((item) => {
-        const active = item.dataset.page === pageName;
+        const active = item.dataset.page === navPage;
         item.classList.toggle("active", active);
         if (active) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
@@ -3639,12 +3699,14 @@ async function init() {
     loadSavedPreferences();
     bindEvents();
     updateLive3DTransform();
-    const initialMatch = document.querySelector(
-        `[data-page-view="${window.location.hash.slice(1)}"]`
-    );
-    const initialPage = initialMatch && initialMatch.dataset && initialMatch.dataset.pageView
-        ? initialMatch.dataset.pageView
-        : "home";
+    buildPageTabs();
+    const requestedPage = window.location.hash.slice(1);
+    const initialMatch = document.querySelector(`[data-page-view="${requestedPage}"]`);
+    const initialPage = PAGE_ALIASES[requestedPage]
+        ? requestedPage
+        : initialMatch && initialMatch.dataset && initialMatch.dataset.pageView
+            ? initialMatch.dataset.pageView
+            : "home";
     navigateToPage(initialPage, { updateHistory: false });
     if (connectionMode === "esp32") {
         setConnectionStatus("A ligar…", "offline");

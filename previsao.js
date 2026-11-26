@@ -146,6 +146,14 @@ async function connectTelegram() {
         }
         const updates = await telegramCall(token, "getUpdates");
         const chats = (updates.result || []).map((u) => (u.message || u.my_chat_member || {}).chat).filter(Boolean);
+        const knownChat = $("settingTelegramChat").value.trim();
+        if (!chats.length && telegramChatValid(knownChat)) {
+            // As mensagens já foram lidas (por exemplo, as ordens escritas ao bot): mantém-se a conversa
+            storeNoticeSettings();
+            renderNoticeStatus();
+            showToast(`Ligado ao bot @${me.result.username}. Agora carrega em Enviar aviso de teste.`);
+            return;
+        }
         if (!chats.length) {
             telegramStep(`Código certo! Agora abre o bot @${me.result.username} no Telegram, carrega em Iniciar (ou escreve "olá") e volta a carregar em Ligar ao meu Telegram.`);
             return;
@@ -218,7 +226,7 @@ function renderNoticeStatus() {
 
 // Nível "Tudo": cada entrada do histórico também vai para o telemóvel.
 // As situações com aviso próprio (chuva, previsão, torneira, modo Ausente) não se repetem.
-const NOTICE_OWN_SOURCES = ["segurança", "previsão do tempo", "temporizador", "modo Ausente"];
+const NOTICE_OWN_SOURCES = ["segurança", "previsão do tempo", "temporizador", "modo Ausente", "Telegram"];   // ao Telegram, a casa já responde
 
 function noticeLevelAll() {
     return (houseSettings.noticeLevel || "all") === "all";
@@ -230,7 +238,8 @@ appendHistory = function appendHistoryWithNotice(entry) {
     if (!noticeLevelAll() || NOTICE_OWN_SOURCES.includes(entry.source)) return;
     const origins = {
         "aplicação": "Pedido na aplicação", "gestão térmica": "Decisão da gestão térmica",
-        "automatização": "Automatização", "horário": "Horário", "controlo automático": "Controlo automático"
+        "automatização": "Automatização", "horário": "Horário", "controlo automático": "Controlo automático",
+        "Siri": "Pedido à Siri"
     };
     const origin = origins[entry.source] || entry.source || "Casa";
     const reason = String(entry.result || "").replace(/^simulação( · )?/, "");

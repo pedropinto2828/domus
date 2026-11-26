@@ -567,9 +567,9 @@ function render3DEnvironment(state) {
 /* ---------- pesquisa rápida (Ctrl+K) ---------- */
 
 const PAGE_LABELS = {
-    home: "Início", plant: "Planta da Casa", live3d: "Vista 3D ao Vivo", equipment: "Equipamentos",
-    automations: "Automatizações", schedules: "Horários", statistics: "Estatísticas", alerts: "Alertas",
-    history: "Histórico", diagnostics: "Diagnóstico", settings: "Definições", about: "Sobre o projeto"
+    home: "Início", plant: "Mapa da casa", live3d: "Vista 3D ao Vivo", equipment: "Equipamentos",
+    automations: "Automatizações", schedules: "Horários", energy: "Energia", statistics: "Estatísticas",
+    alerts: "Alertas", history: "Histórico", diagnostics: "Diagnóstico", settings: "Definições", about: "Sobre o projeto"
 };
 let commandItems = [];
 let commandIndex = 0;

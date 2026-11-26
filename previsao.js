@@ -107,26 +107,55 @@ function sendPhoneNotice(title, message, tag = "house", priority = 4) {
 
 // "Ligar ao meu Telegram": confirma o código do bot e descobre a conversa
 // (é preciso ter carregado em Iniciar no bot, no Telegram).
+// Cada passo aparece na linha de estado (fica visível) e numa mensagem rápida.
+function telegramStep(message, ok = false) {
+    const status = $("noticeStatus");
+    if (status) {
+        status.textContent = message;
+        status.classList.toggle("ok", ok);
+    }
+    showToast(message);
+}
+
+// Pedido ao Telegram com limite de 10 s: numa rede que bloqueia o Telegram
+// (algumas escolas), o pedido podia ficar pendurado sem dar resposta.
+async function telegramCall(token, method) {
+    const control = new AbortController();
+    const timer = window.setTimeout(() => control.abort(), 10000);
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, { signal: control.signal });
+        return await response.json();
+    } finally {
+        window.clearTimeout(timer);
+    }
+}
+
 async function connectTelegram() {
-    const token = $("settingTelegramToken").value.trim();
+    const token = $("settingTelegramToken").value.replace(/\s+/g, "");
+    $("settingTelegramToken").value = token;
     if (!telegramTokenValid(token)) {
-        showToast("Cola o código que o @BotFather te deu (números, dois pontos e letras).");
+        telegramStep("Esse código não está completo. Cola só a linha do @BotFather: números, dois pontos e letras.");
         return;
     }
+    telegramStep("A ligar ao Telegram…");
     try {
-        const me = await (await fetch(`https://api.telegram.org/bot${token}/getMe`)).json();
-        if (!me.ok) { showToast("O Telegram não reconhece este código. Confirma que o copiaste todo."); return; }
-        const updates = await (await fetch(`https://api.telegram.org/bot${token}/getUpdates`)).json();
+        const me = await telegramCall(token, "getMe");
+        if (!me.ok) {
+            telegramStep("O Telegram não reconhece este código. Se fizeste /revoke, usa o código novo.");
+            return;
+        }
+        const updates = await telegramCall(token, "getUpdates");
         const chats = (updates.result || []).map((u) => (u.message || u.my_chat_member || {}).chat).filter(Boolean);
         if (!chats.length) {
-            showToast(`Abre o bot @${me.result.username} no Telegram, carrega em Iniciar e volta a carregar aqui.`);
+            telegramStep(`Código certo! Agora abre o bot @${me.result.username} no Telegram, carrega em Iniciar (ou escreve "olá") e volta a carregar em Ligar ao meu Telegram.`);
             return;
         }
         $("settingTelegramChat").value = String(chats[chats.length - 1].id);
         storeNoticeSettings();
-        showToast(`Ligado ao bot @${me.result.username}. Envia um aviso de teste.`);
+        renderNoticeStatus();
+        showToast(`Ligado ao bot @${me.result.username}. Agora carrega em Enviar aviso de teste.`);
     } catch (error) {
-        showToast("Sem Internet: não foi possível falar com o Telegram.");
+        telegramStep("Não consegui falar com o Telegram. Esta rede pode estar a bloquear o Telegram (acontece em escolas): experimenta noutra rede ou com os dados do telemóvel.");
     }
 }
 

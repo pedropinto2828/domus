@@ -3131,6 +3131,7 @@ function validateConfigurationBackup(backup) {
 function currentConfigurationBackup() {
     const settings = JSON.parse(JSON.stringify(houseSettings));
     settings.telegramToken = "";   // o código do bot é secreto: nunca vai para o ficheiro
+    delete settings.siriCode;      // nem o código da Siri da demonstração
     return {
         schemaVersion: 1,
         exportedAt: new Date().toISOString(),
@@ -3196,6 +3197,7 @@ async function importConfiguration(event) {
     };
     // A cópia não traz o código do bot: mantém-se o que estava neste aparelho
     if (!imported.settings.telegramToken) imported.settings.telegramToken = houseSettings.telegramToken || "";
+    if (!imported.settings.siriCode && houseSettings.siriCode) imported.settings.siriCode = houseSettings.siriCode;
     try {
         localStorage.setItem("domus-settings", JSON.stringify(imported.settings));
         localStorage.setItem("domus-profiles", JSON.stringify(imported.profiles));

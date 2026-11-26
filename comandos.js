@@ -218,7 +218,8 @@ async function pollTelegramCommands() {
         const skipOld = !telegramBacklogSkipped;
         telegramBacklogSkipped = true;
         for (const update of data.result) {
-            telegramCommandOffset = Math.max(telegramCommandOffset, update.update_id + 1);
+            if (update.update_id < telegramCommandOffset) continue;   // já lida (nunca repetir uma ordem)
+            telegramCommandOffset = update.update_id + 1;
             if (skipOld) continue;
             const message = update.message;
             if (!message || !message.text || String(message.chat && message.chat.id) !== String(houseSettings.telegramChatId)) continue;   // só a conversa ligada
@@ -240,3 +241,98 @@ $("settingTelegramCommands").addEventListener("change", () => {
     saveDemoSettings();
 });
 window.setInterval(pollTelegramCommands, TELEGRAM_COMMAND_POLL_MS);
+
+/* ---------- Siri na demonstração ----------
+ * Sem a maquete, a Siri não tem a quem falar. Então o Atalho do iPhone envia a frase
+ * para um "tópico" secreto do ntfy.sh (o mesmo serviço do modo ao vivo), este site está
+ * à escuta, executa a ordem na casa simulada e publica a resposta noutro tópico
+ * (…-resposta), que o Atalho lê e a Siri diz em voz alta.
+ * Só funciona em demonstração: com a casa ligada, a Siri fala com a ESP32 (/api/command).
+ */
+const SIRI_SERVER = "https://ntfy.sh/";
+let siriSource = null;
+const siriSeenIds = new Set();
+
+function newSiriCode() {
+    const letters = "abcdefghijkmnpqrstuvwxyz23456789";
+    const random = new Uint8Array(10);
+    crypto.getRandomValues(random);
+    return Array.from(random, (n) => letters[n % letters.length]).join("");
+}
+
+function siriCode() {
+    if (!/^[a-z0-9]{10}$/.test(houseSettings.siriCode || "")) {
+        houseSettings.siriCode = newSiriCode();
+        saveDemoSettings();
+    }
+    return houseSettings.siriCode;
+}
+
+const siriAddress = () => `${SIRI_SERVER}domus-ordens-${siriCode()}`;
+
+function renderSiriStatus(text, ok = false) {
+    $("settingSiriAddress").value = siriAddress();
+    $("siriStatus").textContent = text;
+    $("siriStatus").classList.toggle("ok", ok);
+}
+
+// Tira os emojis da resposta, para a Siri não os ler em voz alta
+const plainReply = (text) => text.replace(/\p{Extended_Pictographic}|️/gu, "").replace(/\s+/g, " ").trim();
+
+async function runSiriOrder(text) {
+    if (connectionMode !== "demo") return;   // nunca mexe na casa verdadeira por este caminho
+    const { reply } = await runCommandText(text, "Siri");
+    const spoken = plainReply(reply);
+    fetch(`${siriAddress()}-resposta`, { method: "POST", body: spoken }).catch(() => { /* sem Internet */ });
+    showToast(`Siri: "${text}" → ${spoken}`);
+    pushSimLog(`Siri: "${text}" → ${spoken}`);
+}
+
+function startSiriListening() {
+    if (siriSource) { siriSource.close(); siriSource = null; }
+    if (connectionMode !== "demo") {
+        $("settingSiriAddress").value = "(só em demonstração)";
+        $("siriStatus").textContent = "Com a casa ligada, a Siri fala diretamente com a ESP32 (Atalho da secção 4.18 do manual).";
+        $("siriStatus").classList.remove("ok");
+        return;
+    }
+    renderSiriStatus("A ligar…");
+    const source = new EventSource(`${siriAddress()}/sse`);   // só as ordens novas
+    siriSource = source;
+    source.onopen = () => renderSiriStatus("✓ À escuta da Siri. Este site tem de ficar aberto neste aparelho.", true);
+    source.onmessage = (event) => {
+        try {
+            const envelope = JSON.parse(event.data);
+            if (envelope.event !== "message" || siriSeenIds.has(envelope.id)) return;
+            siriSeenIds.add(envelope.id);
+            const text = String(envelope.message || "").slice(0, 200).trim();
+            if (text) runSiriOrder(text);
+        } catch (error) { /* mensagem estranha: ignora */ }
+    };
+    source.onerror = () => renderSiriStatus("Sem ligação ao serviço (Internet ou rede da escola?). A tentar de novo…");
+}
+
+$("sendSiriAddress").addEventListener("click", () => {
+    if (!telegramReady()) {
+        showToast("Liga primeiro o Telegram (Avisos no telemóvel), ou copia o endereço à mão.");
+        return;
+    }
+    sendTelegramReply(`🎙️ Endereço para o Atalho da Siri (não o partilhes):\n${siriAddress()}\n\nResposta (para o 2.º "Obter conteúdo do URL"):\n${siriAddress()}-resposta/raw?poll=1&since=15s`);
+    showToast("Endereço enviado para o teu Telegram.");
+});
+$("copySiriAddress").addEventListener("click", async () => {
+    try {
+        await navigator.clipboard.writeText(siriAddress());
+        showToast("Endereço copiado.");
+    } catch (error) {
+        $("settingSiriAddress").select();
+        showToast("Seleciona o endereço e copia-o.");
+    }
+});
+$("newSiriCode").addEventListener("click", () => {
+    houseSettings.siriCode = newSiriCode();
+    saveDemoSettings();
+    startSiriListening();
+    showToast("Endereço novo: atualiza o Atalho do iPhone.");
+});
+startSiriListening();

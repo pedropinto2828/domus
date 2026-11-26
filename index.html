@@ -805,6 +805,15 @@
                 <h3>Falar com a casa</h3>
                 <label class="settings-check"><input id="settingTelegramCommands" type="checkbox" checked> Aceitar ordens escritas ao bot do Telegram (só da conversa ligada acima)</label>
                 <p class="settings-help">Escreve ao teu bot, por exemplo: <strong>abrir janela 1</strong>, <strong>fechar janela 2</strong> (o estore), <strong>liga a luz da sala</strong>, <strong>apaga as luzes todas</strong>, <strong>liga a ventoinha</strong>, <strong>abre a torneira</strong>, <strong>modo noite</strong> ou <strong>estado</strong>. A casa obedece e responde. Escreve <strong>ajuda</strong> para ver todas as frases. Em demonstração, o site tem de estar aberto neste aparelho; com a casa ligada, é a ESP32 que lê as mensagens (de 10 em 10 segundos). Com a casa ligada, também se pode falar com a Siri através de um Atalho do iPhone (ver o manual).</p>
+                <h3>Siri na demonstração</h3>
+                <label class="connection-field">Endereço para o Atalho da Siri (só em demonstração)<input id="settingSiriAddress" type="text" readonly></label>
+                <div class="connection-actions">
+                    <button class="secondary-button" id="sendSiriAddress" type="button">Enviar para o meu Telegram</button>
+                    <button class="secondary-button" id="copySiriAddress" type="button">Copiar</button>
+                    <button class="secondary-button" id="newSiriCode" type="button">Gerar novo endereço</button>
+                </div>
+                <p class="notice-status" id="siriStatus" role="status">A preparar…</p>
+                <p class="settings-help">Com este site aberto, a Siri do telemóvel pode mandar ordens à casa simulada: o Atalho envia a frase para este endereço e o site executa-a e responde. Toca em <strong>Enviar para o meu Telegram</strong> para receber o endereço no telemóvel e segue os passos do manual (secção 4.18). O endereço tem um código secreto: quem o souber pode dar ordens à simulação, por isso não o partilhes (se for preciso, gera um novo). Com a casa ligada, usa o Atalho da casa (rota /api/command).</p>
                 <h3>Energia</h3>
                 <div class="settings-device-grid">
                     <label class="connection-field">Preço da eletricidade (€/kWh)<input id="settingEnergyPrice" type="number" min="0.01" max="1" step="0.01" inputmode="decimal"></label>
@@ -924,7 +933,7 @@
     <script src="interativo.js?v=16"></script>
     <script src="previsao.js?v=16"></script>
     <script src="energia.js?v=16"></script>
-    <script src="comandos.js?v=16"></script>
+    <script src="comandos.js?v=17"></script>
     <script src="aovivo.js?v=16"></script>
 </body>
 </html>

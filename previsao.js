@@ -7,15 +7,13 @@
  *   - vai chover (>= 70 % na próxima hora): a janela fecha antes;
  *   - verão e vem calor (alvo + 5 °C nas próximas 3 h), de dia: o estore desce antes.
  *
- * Avisos: o telemóvel tem a app gratuita ntfy a seguir um "tópico" (um nome
- * escolhido nas Definições). Com a ESP32 ligada, é a placa que envia os avisos;
- * em demonstração, é este site. Quem souber o nome do tópico também recebe os
- * avisos, por isso deve ser difícil de adivinhar.
+ * Avisos: mensagens de um bot do Telegram (criado pelo utilizador no @BotFather).
+ * Com a ESP32 ligada, é a placa que envia os avisos; em demonstração, é este site.
+ * O código do bot é secreto: quem o tiver pode enviar mensagens em nome do bot.
  *
  * Carregado depois do interativo.js (usa demoState, houseSettings, renderState…).
  */
 const WEATHER_REFRESH_MS = 1800000;   // nova previsão a cada 30 min, como a ESP32
-const NTFY_URL = "https://ntfy.sh/";
 const DEFAULT_WEATHER = { city: "Vizela", lat: 41.38, lon: -8.31 };
 
 let realForecast = null;   // última previsão real: { city, rainProbability, tempMaxC, at }
@@ -72,41 +70,68 @@ function renderForecast(state) {
     element.classList.toggle("rain", rainSoon(state));
 }
 
-/* ---------- avisos no telemóvel (ntfy) ---------- */
+/* ---------- avisos no telemóvel (bot do Telegram) ---------- */
 
-function ntfyTopicValid(topic) {
-    return /^[A-Za-z0-9_-]{1,64}$/.test(topic);
+function telegramTokenValid(token) {
+    return /^\d{5,15}:[A-Za-z0-9_-]{20,60}$/.test(token);
 }
+
+function telegramChatValid(chat) {
+    return /^-?\d{1,19}$/.test(chat);
+}
+
+function telegramReady() {
+    return telegramTokenValid(houseSettings.telegramToken || "") && telegramChatValid(String(houseSettings.telegramChatId || ""));
+}
+
+const NOTICE_ICONS = { cloud_with_rain: "🌧️", umbrella: "☔", sunny: "☀️", droplet: "💧", warning: "⚠️", white_check_mark: "✅", iphone: "📱" };
 
 // Envia um aviso para o telemóvel (só em demonstração; com a ESP32 é a placa que envia).
 // Ao aplicar uma mensagem do modo ao vivo, só envia se o outro aparelho não enviar avisos
 // (assim não há avisos repetidos nem avisos perdidos).
-// Prioridade 4 (alta) ou 5 (máxima): o telemóvel toca, vibra e acende o ecrã.
-// Com 2 (baixa) ou 3, a app ntfy pode mostrar o aviso sem acender o ecrã.
-function sendPhoneNotice(title, message, tag = "house", priority = 4, topicOverride) {
+// O Telegram toca e acende o ecrã como qualquer mensagem; prioridade < 3 vai em silêncio.
+function sendPhoneNotice(title, message, tag = "house", priority = 4) {
     if (connectionMode !== "demo") return;
     if (typeof liveApplying !== "undefined" && liveApplying && liveSenderNotifies) return;
-    const topic = (topicOverride || houseSettings.ntfyTopic || "").trim();
-    if (!ntfyTopicValid(topic)) return;
-    // Pedido simples (texto com JSON): o ntfy aceita-o na raiz sem pedido OPTIONS
-    fetch(NTFY_URL, {
-        method: "POST",
-        body: JSON.stringify({ topic, title: `DOMUS+ · ${title}`, message, tags: [tag], priority })
-    }).catch(() => { /* sem Internet: o aviso perde-se, a casa continua */ });
+    if (!telegramReady()) return;
+    // Formulário simples (sem pedido OPTIONS): o Telegram aceita-o diretamente
+    const body = new URLSearchParams({
+        chat_id: String(houseSettings.telegramChatId),
+        text: `${NOTICE_ICONS[tag] || "🏠"} DOMUS+ · ${title}\n${message}`,
+        disable_notification: String(priority < 3)
+    });
+    fetch(`https://api.telegram.org/bot${houseSettings.telegramToken}/sendMessage`, { method: "POST", body })
+        .catch(() => { /* sem Internet: o aviso perde-se, a casa continua */ });
     pushSimLog(`Aviso enviado para o telemóvel: ${title}`);
 }
 
-async function sendTestNotice() {
-    const topic = $("settingNtfyTopic").value.trim();
-    if (!ntfyTopicValid(topic)) {
-        showToast("Escreve um tópico só com letras, números, - e _ (ou carrega em Gerar tópico).");
+// "Ligar ao meu Telegram": confirma o código do bot e descobre a conversa
+// (é preciso ter carregado em Iniciar no bot, no Telegram).
+async function connectTelegram() {
+    const token = $("settingTelegramToken").value.trim();
+    if (!telegramTokenValid(token)) {
+        showToast("Cola o código que o @BotFather te deu (números, dois pontos e letras).");
         return;
     }
-    if (connectionMode === "esp32") {
-        if (topic !== (houseSettings.ntfyTopic || "")) {
-            showToast("Guarda primeiro as definições, para a ESP32 ficar com este tópico.");
+    try {
+        const me = await (await fetch(`https://api.telegram.org/bot${token}/getMe`)).json();
+        if (!me.ok) { showToast("O Telegram não reconhece este código. Confirma que o copiaste todo."); return; }
+        const updates = await (await fetch(`https://api.telegram.org/bot${token}/getUpdates`)).json();
+        const chats = (updates.result || []).map((u) => (u.message || u.my_chat_member || {}).chat).filter(Boolean);
+        if (!chats.length) {
+            showToast(`Abre o bot @${me.result.username} no Telegram, carrega em Iniciar e volta a carregar aqui.`);
             return;
         }
+        $("settingTelegramChat").value = String(chats[chats.length - 1].id);
+        storeNoticeSettings();
+        showToast(`Ligado ao bot @${me.result.username}. Envia um aviso de teste.`);
+    } catch (error) {
+        showToast("Sem Internet: não foi possível falar com o Telegram.");
+    }
+}
+
+async function sendTestNotice() {
+    if (connectionMode === "esp32") {
         try {
             await apiRequest("/api/notify/test", { method: "POST" });
             showToast("Pedido enviado: a ESP32 vai mandar o aviso de teste.");
@@ -115,18 +140,23 @@ async function sendTestNotice() {
         }
         return;
     }
-    storeNoticeSettings();   // o teste e os outros avisos usam sempre o mesmo tópico
-    sendPhoneNotice("Teste", "Os avisos do DOMUS+ estão a funcionar.", "white_check_mark", 4, topic);
-    showToast("Aviso de teste enviado. Os outros avisos vão para o mesmo tópico.");
+    storeNoticeSettings();   // o teste e os outros avisos usam sempre os mesmos dados
+    if (!telegramReady()) {
+        showToast("Primeiro cola o código do bot e carrega em Ligar ao meu Telegram.");
+        return;
+    }
+    sendPhoneNotice("Teste", "Os avisos do DOMUS+ estão a funcionar.", "white_check_mark", 4);
+    showToast("Aviso de teste enviado. Deve chegar ao Telegram em segundos.");
 }
 
-// Em demonstração, o tópico e o nível ficam guardados logo que mudam
-// (antes, só ficavam com "Guardar definições"; o teste chegava e os outros avisos não).
+// Em demonstração, o código, a conversa e o nível ficam guardados logo que mudam
 function storeNoticeSettings() {
     if (connectionMode !== "demo") { renderNoticeStatus(); return; }
-    const topic = $("settingNtfyTopic").value.trim();
-    if (topic && !ntfyTopicValid(topic)) { renderNoticeStatus(); return; }
-    houseSettings.ntfyTopic = topic;
+    const token = $("settingTelegramToken").value.trim();
+    const chat = $("settingTelegramChat").value.trim();
+    if ((token && !telegramTokenValid(token)) || (chat && !telegramChatValid(chat))) { renderNoticeStatus(); return; }
+    houseSettings.telegramToken = token;
+    houseSettings.telegramChatId = chat;
     houseSettings.noticeLevel = $("settingNoticeLevel").value === "important" ? "important" : "all";
     saveDemoSettings();
     renderNoticeStatus();
@@ -135,30 +165,26 @@ function storeNoticeSettings() {
 function renderNoticeStatus() {
     const status = $("noticeStatus");
     if (!status) return;
-    const saved = houseSettings.ntfyTopic || "";
-    const typed = $("settingNtfyTopic").value.trim();
+    const token = $("settingTelegramToken").value.trim();
+    const chat = $("settingTelegramChat").value.trim();
+    const level = houseSettings.noticeLevel === "important" ? "só o importante" : "tudo";
     let text, ok = false;
-    if (typed && !ntfyTopicValid(typed)) {
-        text = "O tópico só pode ter letras, números, - e _ .";
-    } else if (connectionMode === "esp32" && typed !== saved) {
-        text = "Carrega em Guardar definições para a casa ficar com este tópico.";
-    } else if (!saved) {
-        text = "Avisos desligados: escreve ou gera um tópico.";
+    if (token && !telegramTokenValid(token)) {
+        text = "O código do bot não está completo: copia-o outra vez do @BotFather.";
+    } else if (chat && !telegramChatValid(chat)) {
+        text = "A conversa tem de ser um número: carrega em Ligar ao meu Telegram.";
+    } else if (connectionMode === "esp32") {
+        ok = Boolean(chat);
+        text = ok ? `✓ Com a casa ligada, é a ESP32 que envia os avisos (${level}) para o Telegram. Guarda as definições depois de mudar.`
+            : "Avisos desligados: cola o código do bot, liga ao Telegram e guarda as definições.";
+    } else if (!telegramReady()) {
+        text = "Avisos desligados: cola o código do bot e carrega em Ligar ao meu Telegram.";
     } else {
         ok = true;
-        const level = houseSettings.noticeLevel === "important" ? "só o importante" : "tudo";
-        text = connectionMode === "esp32"
-            ? `✓ Avisos ligados (${level}): a casa envia para o tópico ${saved}.`
-            : `✓ Avisos ligados (${level}) para o tópico ${saved}. Em demonstração, este site tem de estar aberto neste aparelho.`;
+        text = `✓ Avisos ligados (${level}) para o Telegram. Em demonstração, este site tem de estar aberto neste aparelho.`;
     }
     status.textContent = text;
     status.classList.toggle("ok", ok);
-}
-
-function generateNtfyTopic() {
-    const random = Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) => (n % 36).toString(36)).join("");
-    $("settingNtfyTopic").value = `domus-${random}`;
-    showToast("Tópico gerado. Escreve-o igual na app ntfy.");
 }
 
 // Nível "Tudo": cada entrada do histórico também vai para o telemóvel.
@@ -248,17 +274,20 @@ renderHouseSettings = function renderHouseSettingsWithWeather() {
     const weather = weatherSettings();
     $("settingWeatherCity").value = weather.city;
     renderWeatherCoords(weather);
-    $("settingNtfyTopic").value = houseSettings.ntfyTopic || "";
+    $("settingTelegramToken").value = houseSettings.telegramToken || "";
+    $("settingTelegramChat").value = houseSettings.telegramChatId || "";
     $("settingNoticeLevel").value = houseSettings.noticeLevel === "important" ? "important" : "all";
     renderNoticeStatus();
 };
 
 $("findWeatherCity").addEventListener("click", findWeatherCity);
-$("generateNtfyTopic").addEventListener("click", () => { generateNtfyTopic(); storeNoticeSettings(); });
-$("settingNtfyTopic").addEventListener("change", storeNoticeSettings);
-$("settingNtfyTopic").addEventListener("input", renderNoticeStatus);
+$("connectTelegram").addEventListener("click", connectTelegram);
+["settingTelegramToken", "settingTelegramChat"].forEach((id) => {
+    $(id).addEventListener("change", storeNoticeSettings);
+    $(id).addEventListener("input", renderNoticeStatus);
+});
 $("settingNoticeLevel").addEventListener("change", storeNoticeSettings);
-$("testNtfy").addEventListener("click", sendTestNotice);
+$("testNotice").addEventListener("click", sendTestNotice);
 renderHouseSettings();
 fetchRealForecast();
 window.setInterval(fetchRealForecast, WEATHER_REFRESH_MS);

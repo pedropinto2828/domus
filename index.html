@@ -767,17 +767,18 @@
                 </div>
                 <button class="secondary-button" id="findWeatherCity" type="button">Procurar cidade</button>
                 <p class="settings-help">Nos modos Automático e ECO, a casa prepara-se antes de o tempo mudar: se a previsão dá 70 % ou mais de chuva na próxima hora, fecha a janela; no verão, se vêm 5 °C acima da temperatura-alvo nas próximas 3 horas, desce o estore durante o dia. A previsão é do serviço gratuito Open-Meteo e é atualizada a cada 30 minutos. Sem Internet, a casa continua só com os sensores.</p>
-                <h3>Avisos no telemóvel</h3>
+                <h3>Avisos no telemóvel (Telegram)</h3>
                 <div class="settings-device-grid">
-                    <label class="connection-field">Tópico dos avisos (app ntfy)<input id="settingNtfyTopic" type="text" maxlength="64" placeholder="ex.: domus-7k3q9x2m" autocomplete="off"></label>
+                    <label class="connection-field">Código do bot (do @BotFather)<input id="settingTelegramToken" type="password" maxlength="80" placeholder="123456789:ABC…" autocomplete="off"></label>
+                    <label class="connection-field">Conversa (preenchida sozinha)<input id="settingTelegramChat" type="text" maxlength="20" inputmode="numeric" autocomplete="off"></label>
                     <label class="connection-field">Avisar de<select id="settingNoticeLevel"><option value="all">Tudo (cada ação da casa)</option><option value="important">Só o importante</option></select></label>
                 </div>
                 <div class="connection-actions">
-                    <button class="secondary-button" id="generateNtfyTopic" type="button">Gerar tópico</button>
-                    <button class="secondary-button" id="testNtfy" type="button">Enviar aviso de teste</button>
+                    <button class="secondary-button" id="connectTelegram" type="button">Ligar ao meu Telegram</button>
+                    <button class="secondary-button" id="testNotice" type="button">Enviar aviso de teste</button>
                 </div>
-                <p class="notice-status" id="noticeStatus" role="status">Avisos desligados: escreve ou gera um tópico.</p>
-                <p class="settings-help">1. Instala no telemóvel a app gratuita <strong>ntfy</strong>. 2. Carrega em + e escreve o mesmo tópico. 3. Guarda as definições e envia um aviso de teste. Com <strong>Só o importante</strong>, a casa avisa quando começa a chover, quando se prepara para chuva ou calor, quando a torneira fecha sozinha, quando há movimento no modo Ausente e quando um sensor deixa de responder. Com <strong>Tudo</strong>, avisa também de cada ação: luzes, janela, estore, ventoinha, modos, horários e automatizações, venham de onde vierem. Usa um tópico difícil de adivinhar: quem o souber também recebe os avisos.</p>
+                <p class="notice-status" id="noticeStatus" role="status">Avisos desligados: cola o código do bot e carrega em Ligar ao meu Telegram.</p>
+                <p class="settings-help">1. No Telegram, abre o <strong>@BotFather</strong>, escreve <strong>/newbot</strong> e escolhe um nome para o bot. 2. Copia o código que ele te dá e cola-o aqui. 3. Abre o teu bot no Telegram e carrega em <strong>Iniciar</strong>. 4. Volta aqui, carrega em <strong>Ligar ao meu Telegram</strong> e depois em <strong>Enviar aviso de teste</strong>. Com <strong>Só o importante</strong>, a casa avisa quando começa a chover, quando se prepara para chuva ou calor, quando a torneira fecha sozinha, quando há movimento no modo Ausente e quando um sensor deixa de responder. Com <strong>Tudo</strong>, avisa também de cada ação. Não partilhes o código do bot.</p>
             </section>
             <section class="settings-section">
                 <h3>Modos de funcionamento</h3>
@@ -889,8 +890,8 @@
     </div>
     </main>
     <script src="app.js"></script>
-    <script src="interativo.js?v=12"></script>
-    <script src="previsao.js?v=12"></script>
-    <script src="aovivo.js?v=9"></script>
+    <script src="interativo.js?v=13"></script>
+    <script src="previsao.js?v=13"></script>
+    <script src="aovivo.js?v=13"></script>
 </body>
 </html>

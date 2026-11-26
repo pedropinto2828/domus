@@ -93,7 +93,8 @@ const DEFAULT_SETTINGS = {
     temperatureOffsetC: 0,
     autoDevices: { light1: false, fan: false },
     weather: { city: "Vizela", lat: 41.38, lon: -8.31 },   // previsão do tempo (Open-Meteo)
-    ntfyTopic: "",                                          // avisos no telemóvel (app ntfy)
+    telegramToken: "",                                      // avisos no telemóvel: código do bot do Telegram
+    telegramChatId: "",                                     // e a conversa para onde os enviar
     noticeLevel: "all"                                      // "all" = tudo; "important" = só o importante
 };
 
@@ -1322,7 +1323,8 @@ async function saveHouseSettings() {
             lat: Number($("settingWeatherCoords").dataset.lat),
             lon: Number($("settingWeatherCoords").dataset.lon)
         },
-        ntfyTopic: $("settingNtfyTopic").value.trim(),
+        telegramToken: $("settingTelegramToken").value.trim(),
+        telegramChatId: $("settingTelegramChat").value.trim(),
         noticeLevel: $("settingNoticeLevel").value === "important" ? "important" : "all"
     };
     if (Object.values(textSettings.devices).some((value) => !value) ||
@@ -1350,8 +1352,9 @@ async function saveHouseSettings() {
         showToast("Revê a cidade da previsão do tempo (carrega em Procurar cidade).");
         return false;
     }
-    if (!/^[A-Za-z0-9_-]{0,64}$/.test(textSettings.ntfyTopic)) {
-        showToast("O tópico dos avisos só pode ter letras, números, - e _ (até 64).");
+    if ((textSettings.telegramToken && !/^\d{5,15}:[A-Za-z0-9_-]{20,60}$/.test(textSettings.telegramToken)) ||
+        (textSettings.telegramChatId && !/^-?\d{1,19}$/.test(textSettings.telegramChatId))) {
+        showToast("Revê o código do bot e a conversa do Telegram (carrega em Ligar ao meu Telegram).");
         return false;
     }
 

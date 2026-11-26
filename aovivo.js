@@ -73,7 +73,7 @@ async function sendLiveNow() {
     }
     const message = JSON.stringify({
         v: 3, from: liveId, manual: liveManualOrder, page: currentPageName(), state,
-        notify: Boolean((houseSettings.ntfyTopic || "").trim())   // este aparelho envia avisos
+        notify: typeof telegramReady === "function" && telegramReady()   // este aparelho envia avisos
     });
     liveManualOrder = false;
     try {

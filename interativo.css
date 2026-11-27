@@ -571,3 +571,12 @@ html[data-theme="dark"] .command-help { border-color: #2a3d5c; }
 
 .settings-check { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; font-size: 15px; }
 .settings-check input { width: 18px; height: 18px; }
+
+/* ---------- Modo Cuidar ---------- */
+.hero-button.sos { background: #c8372d; border-color: transparent; color: #fff; font-weight: 700; }
+.hero-button.sos:hover { background: #dd4a3f; }
+.hero-care { font-size: 13px; color: #dbe9f8; margin-top: 6px; }
+.hero-care.alert { color: #ffb3a8; font-weight: 700; }
+.care-reminders { display: grid; gap: 8px; }
+.care-reminder { display: grid; grid-template-columns: 9em 1fr; gap: 12px; }
+@media (max-width: 520px) { .care-reminder { grid-template-columns: 7.5em 1fr; } }

@@ -97,7 +97,12 @@ const DEFAULT_SETTINGS = {
     telegramChatId: "",                                     // e a conversa para onde os enviar
     noticeLevel: "all",                                     // "all" = tudo; "important" = só o importante
     telegramCommands: true,                                 // aceitar ordens escritas ao bot (só da conversa ligada)
-    energyPrice: 0.16                                       // preço da eletricidade (€/kWh) para a página Energia
+    energyPrice: 0.16,                                      // preço da eletricidade (€/kWh) para a página Energia
+    care: {                                                 // Modo Cuidar (cuidar.js): pessoas idosas que vivem sozinhas
+        enabled: false, hours: 4, start: 8, end: 22,        // avisar sem movimento durante 4 h, entre as 8 e as 22
+        minTemp: 18, maxTemp: 28, maxHumidity: 70,          // avisos de saúde: frio, calor e humidade
+        reminders: []                                       // até 4 lembretes diários { time: "09:00", text: "…" }
+    }
 };
 
 const MODE_NAMES = {
@@ -1331,7 +1336,8 @@ async function saveHouseSettings() {
         telegramChatId: $("settingTelegramChat").value.trim(),
         noticeLevel: $("settingNoticeLevel").value === "important" ? "important" : "all",
         telegramCommands: $("settingTelegramCommands").checked,
-        energyPrice: Number($("settingEnergyPrice").value)
+        energyPrice: Number($("settingEnergyPrice").value),
+        care: typeof readCareForm === "function" ? readCareForm() : houseSettings.care
     };
     if (Object.values(textSettings.devices).some((value) => !value) ||
         !textSettings.homeName || !textSettings.roomName ||
@@ -1362,6 +1368,13 @@ async function saveHouseSettings() {
         (textSettings.telegramChatId && !/^-?\d{1,19}$/.test(textSettings.telegramChatId))) {
         showToast("Revê o código do bot e a conversa do Telegram (carrega em Ligar ao meu Telegram).");
         return false;
+    }
+    if (typeof careFormProblem === "function") {
+        const problem = careFormProblem(textSettings.care);
+        if (problem) {
+            showToast(problem);
+            return false;
+        }
     }
     if (!Number.isFinite(textSettings.energyPrice) || textSettings.energyPrice < 0.01 || textSettings.energyPrice > 1) {
         showToast("O preço da eletricidade tem de estar entre 0,01 e 1 €/kWh.");

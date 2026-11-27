@@ -86,6 +86,7 @@
                     <button class="hero-button primary" type="button" data-go-page="live3d" data-scroll-to="simulatorSection">Abrir simulador</button>
                     <button class="hero-button" id="refreshState" type="button">Atualizar estado</button>
                     <button class="hero-button" id="stopMovements" type="button">Parar movimentos</button>
+                    <button class="hero-button sos" id="sosButton" type="button" aria-label="Pedir ajuda: avisa a família no telemóvel">🆘 Pedir ajuda</button>
                 </div>
             </div>
             <div class="hero-climate" aria-label="Clima da casa">
@@ -99,6 +100,7 @@
                 </div>
                 <p class="hero-season" id="heroSeason">Estação: --</p>
                 <p class="hero-forecast" id="heroForecast" hidden></p>
+                <p class="hero-care" id="heroCare" hidden></p>
             </div>
         </section>
 
@@ -413,6 +415,8 @@
                     <button type="button" class="scenario-chip" data-scenario="arrival">🚶 Chegada à noite</button>
                     <button type="button" class="scenario-chip" data-scenario="rainSoon">☔ Vai chover</button>
                     <button type="button" class="scenario-chip" data-scenario="heatSoon">🌡️ Vem calor</button>
+                    <button type="button" class="scenario-chip" data-scenario="careNoMotion">👵 Ninguém se mexe há horas</button>
+                    <button type="button" class="scenario-chip" data-scenario="coldHouse">🥶 Casa fria</button>
                 </div>
                 <div class="simulator-grid">
                     <div class="simulator-controls">
@@ -820,6 +824,29 @@
                 </div>
                 <p class="settings-help">Usado para calcular o custo na página Energia. O consumo é uma estimativa feita a partir do tempo em que cada equipamento esteve ligado.</p>
             </section>
+            <section class="settings-section" id="careSection">
+                <h3>Modo Cuidar e saúde</h3>
+                <p class="settings-help">Pensado para pessoas idosas que vivem sozinhas. Os avisos vão para o Telegram ligado acima, que deve ser o de um familiar.</p>
+                <label class="settings-check"><input id="careEnabled" type="checkbox"> Ligar o Modo Cuidar (avisos de falta de movimento, frio, calor e humidade)</label>
+                <div class="settings-device-grid">
+                    <label class="connection-field">Avisar se não houver movimento durante<select id="careHours"><option value="1">1 h</option><option value="2">2 h</option><option value="3">3 h</option><option value="4">4 h</option><option value="5">5 h</option><option value="6">6 h</option><option value="7">7 h</option><option value="8">8 h</option><option value="9">9 h</option><option value="10">10 h</option><option value="11">11 h</option><option value="12">12 h</option></select></label>
+                    <label class="connection-field">Só entre as (início)<select id="careStart"><option value="0">00:00</option><option value="1">01:00</option><option value="2">02:00</option><option value="3">03:00</option><option value="4">04:00</option><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option></select></label>
+                    <label class="connection-field">e as (fim)<select id="careEnd"><option value="0">00:00</option><option value="1">01:00</option><option value="2">02:00</option><option value="3">03:00</option><option value="4">04:00</option><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option></select></label>
+                    <label class="connection-field">Casa fria abaixo de (°C)<input id="careMinTemp" type="number" min="10" max="25" step="0.5"></label>
+                    <label class="connection-field">Casa quente acima de (°C)<input id="careMaxTemp" type="number" min="24" max="40" step="0.5"></label>
+                    <label class="connection-field">Humidade alta acima de (%)<input id="careMaxHumidity" type="number" min="40" max="95" step="1"></label>
+                </div>
+                <p class="settings-help">Frio ou calor: avisa se durar 30 minutos. Humidade: avisa se durar 2 horas. De noite e no modo Ausente, a falta de movimento não gera aviso. O botão <strong>🆘 Pedir ajuda</strong> do Início, e as frases "preciso de ajuda" ou "socorro" ao Telegram ou à Siri, avisam logo a família.</p>
+                <h3>Lembretes diários</h3>
+                <div class="care-reminders">
+                    <div class="care-reminder"><label class="connection-field">Hora<input id="careReminderTime1" type="time"></label><label class="connection-field">Lembrete<input id="careReminderText1" type="text" maxlength="60" placeholder="Ex.: Tomar os medicamentos"></label></div>
+                    <div class="care-reminder"><label class="connection-field">Hora<input id="careReminderTime2" type="time"></label><label class="connection-field">Lembrete<input id="careReminderText2" type="text" maxlength="60" placeholder="Ex.: Beber água"></label></div>
+                    <div class="care-reminder"><label class="connection-field">Hora<input id="careReminderTime3" type="time"></label><label class="connection-field">Lembrete<input id="careReminderText3" type="text" maxlength="60" placeholder=""></label></div>
+                    <div class="care-reminder"><label class="connection-field">Hora<input id="careReminderTime4" type="time"></label><label class="connection-field">Lembrete<input id="careReminderText4" type="text" maxlength="60" placeholder=""></label></div>
+                </div>
+                <p class="settings-help">À hora marcada, chega um aviso ao telemóvel (por exemplo, "Tomar os medicamentos"). Deixa vazio o que não quiseres usar. Carrega em <strong>Guardar definições</strong> depois de mudar.</p>
+                <p class="notice-status" id="careStatus" role="status">Modo Cuidar desligado.</p>
+            </section>
             <section class="settings-section">
                 <h3>Modos de funcionamento</h3>
                 <p>Consulta as ações de cada modo e guarda-as antes de as aplicar.</p>
@@ -930,10 +957,11 @@
     </div>
     </main>
     <script src="app.js"></script>
-    <script src="interativo.js?v=16"></script>
-    <script src="previsao.js?v=16"></script>
-    <script src="energia.js?v=16"></script>
-    <script src="comandos.js?v=17"></script>
-    <script src="aovivo.js?v=16"></script>
+    <script src="interativo.js?v=18"></script>
+    <script src="previsao.js?v=18"></script>
+    <script src="energia.js?v=18"></script>
+    <script src="comandos.js?v=18"></script>
+    <script src="cuidar.js?v=18"></script>
+    <script src="aovivo.js?v=18"></script>
 </body>
 </html>

@@ -84,7 +84,7 @@ function telegramReady() {
     return telegramTokenValid(houseSettings.telegramToken || "") && telegramChatValid(String(houseSettings.telegramChatId || ""));
 }
 
-const NOTICE_ICONS = { cloud_with_rain: "🌧️", umbrella: "☔", sunny: "☀️", droplet: "💧", warning: "⚠️", white_check_mark: "✅", iphone: "📱" };
+const NOTICE_ICONS = { cloud_with_rain: "🌧️", umbrella: "☔", sunny: "☀️", droplet: "💧", warning: "⚠️", white_check_mark: "✅", iphone: "📱", sos: "🆘", alarm_clock: "⏰" };
 
 // Envia um aviso para o telemóvel (só em demonstração; com a ESP32 é a placa que envia).
 // Ao aplicar uma mensagem do modo ao vivo, só envia se o outro aparelho não enviar avisos
@@ -226,7 +226,7 @@ function renderNoticeStatus() {
 
 // Nível "Tudo": cada entrada do histórico também vai para o telemóvel.
 // As situações com aviso próprio (chuva, previsão, torneira, modo Ausente) não se repetem.
-const NOTICE_OWN_SOURCES = ["segurança", "previsão do tempo", "temporizador", "modo Ausente", "Telegram"];   // ao Telegram, a casa já responde
+const NOTICE_OWN_SOURCES = ["segurança", "previsão do tempo", "temporizador", "modo Ausente", "Telegram", "Modo Cuidar", "saúde", "lembrete"];   // ao Telegram, a casa já responde
 
 function noticeLevelAll() {
     return (houseSettings.noticeLevel || "all") === "all";

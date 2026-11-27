@@ -40,11 +40,15 @@ const CMD_ROOMS = [
 const CMD_HELP = ["ajuda", "comandos", "start", "help", "o que podes fazer", "o que sabes fazer"];
 const CMD_STATUS = ["estado", "como esta", "como esta a casa", "resumo", "temperatura", "status"];
 const CMD_ENERGY = ["energia", "consumo", "gastei", "gasto", "gastou", "eletricidade"];
+const CMD_SOS = ["socorro", "preciso de ajuda", "ajudem me", "ajudem", "ajuda urgente", "emergencia",
+    "pedir ajuda", "pede ajuda", "senti me mal", "sinto me mal", "cai", "chama a familia"];
 
 /* ---------- 3. juntar verbo e equipamento ---------- */
 // customNames: [[equipamento, nome normalizado]] dos nomes mudados nas Definições
 function parseCommand(text, customNames = []) {
     const s = commandNormalize(text);
+    // Pedido de ajuda: vem antes de tudo (e não se confunde com "ajuda", que mostra as frases)
+    if (CMD_SOS.some((w) => commandHas(s, w))) return { kind: "sos" };
     if (commandHasAny(s, CMD_ENERGY)) return { kind: "energy" };
 
     if (["modo", "boa noite", "vou sair", "cheguei", "estou em casa"].some((w) => commandHas(s, w))) {
@@ -105,7 +109,8 @@ const COMMAND_HELP_TEXT = [
     "• liga a ventoinha / desliga a ventoinha",
     "• abre a torneira / fecha a torneira",
     "• modo noite / modo eco / modo ausente / modo automático",
-    "• estado (resumo da casa) / energia (consumo de hoje)"
+    "• estado (resumo da casa) / energia (consumo de hoje)",
+    "• preciso de ajuda (avisa a família)"
 ].join("\n");
 
 /* ---------- respostas ---------- */
@@ -172,6 +177,10 @@ async function runCommandText(text, source = "Telegram") {
                 commandSourceOverride = null;
             }
             return { ok: true, reply: `✅ Modo ${MODE_NAMES[command.action]} ativado.` };
+        }
+        case "sos": {
+            if (typeof sosRequest === "function") await sosRequest(source);
+            return { ok: true, reply: "🆘 Pedido de ajuda enviado à família." };
         }
         case "status": return { ok: true, reply: houseStatusText() };
         case "energy": return { ok: true, reply: typeof energyTodayText === "function" ? energyTodayText() : "⚡ Sem dados de energia." };
